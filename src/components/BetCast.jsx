@@ -6,21 +6,21 @@ import {
     BarChart, Area, AreaChart
 } from 'recharts';
 
-// Custom colors
+// Custom colors - original palette adjusted for dark mode
 const COLORS = {
-    win: '#00C49F',
-    lose: '#FF5252',
-    neutral: '#8884d8',
-    profit: '#4CAF50',
-    loss: '#F44336',
-    background: '#f8f9fa',
-    chartBackground: '#ffffff',
+    win: '#00C49F',        // Keep original green for wins
+    lose: '#FF5252',       // Keep original red for losses
+    neutral: '#8884d8',    // Keep original purple for neutral
+    profit: '#4CAF50',     // Keep original green for profit
+    loss: '#F44336',       // Keep original red for loss
+    background: '#121212', // Dark background
+    chartBackground: '#1e1e1e',
     gradientStart: '#8884d8',
     gradientEnd: '#82ca9d',
-    budgetLine: '#3f51b5',
+    budgetLine: '#3f51b5', // Keep original blue
     referenceStart: '#0088FE',
     referenceEnd: '#FFBB28',
-    lightGray: '#f1f1f1',
+    lightGray: '#e0e0e0',
     darkGray: '#333333'
 };
 

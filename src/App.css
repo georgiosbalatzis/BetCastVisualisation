@@ -314,3 +314,68 @@ footer {
   width: 100% !important;
   height: 100% !important;
 }
+
+/* Dark mode base */
+body {
+  background-color: #1a1a2a;
+  color: #e0e0e0;
+}
+
+/* App container */
+.App {
+  min-height: 100vh;
+  background-color: #1a1a2a;
+}
+
+/* Header and footer */
+.bg-blue-600 {
+  background-color: #1a1a2e;
+}
+
+.bg-gray-800 {
+  background-color: #0f0f1a;
+}
+
+/* Card backgrounds - softer tones */
+.bg-white, .bg-gray-100 {
+  background-color: #242436;
+  color: #e0e0e0;
+  border: 1px solid #333344;
+}
+
+/* Charts and visualization backgrounds */
+.recharts-surface {
+  background-color: #242436;
+}
+
+/* Stat boxes with gradient backgrounds */
+.from-blue-100.to-blue-200,
+.from-green-100.to-green-200,
+.from-purple-100.to-purple-200,
+.from-red-100.to-red-200 {
+  background: #2c2c40;
+  border: 1px solid #333344;
+}
+
+/* Button color */
+.bg-blue-500 {
+  background-color: #3f51b5;
+}
+
+.bg-blue-500:hover {
+  background-color: #4d5ec1;
+}
+
+.bg-gray-200 {
+  background-color: #2a2a3a;
+  color: #d0d0d0;
+}
+
+.bg-gray-200:hover, .hover\:bg-gray-300:hover {
+  background-color: #333344;
+}
+
+/* Make sure text is readable */
+.text-gray-600, .text-gray-700 {
+  color: #b0b0b0;
+}
