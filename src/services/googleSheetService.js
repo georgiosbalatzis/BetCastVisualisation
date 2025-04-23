@@ -1,13 +1,9 @@
 /**
  * Service for fetching data from Google Sheets
  *
- * Due to CORS restrictions with GitHub Pages, we're going to use a workaround
- * with a proxy service to fetch the Google Sheets data
+ * Due to CORS restrictions with GitHub Pages, we're using a proxy service
+ * to fetch the Google Sheets data
  */
-
-// Google Sheet ID
-const SHEET_ID = 'e/2PACX-1vTbj_mc5tRE9rQsBFNlEDO78wJRcmfHYNWHM75WRdTJ37GXjNSYsgIs-AiNuj3wjG8eGRHNbEwlEuEx';
-const GID = '0'; // First sheet
 
 /**
  * Fetches betting data from Google Sheets using a CORS proxy
@@ -17,9 +13,8 @@ const GID = '0'; // First sheet
 export const fetchBettingData = async () => {
     try {
         // Use cors-anywhere proxy to get around CORS issues
-        // Note: For production use, you should set up your own proxy or backend
         const corsProxy = 'https://corsproxy.io/?';
-        const url = `${corsProxy}https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=${GID}&single=true&output=csv`;
+        const url = `${corsProxy}https://docs.google.com/spreadsheets/d/e/2PACX-1vTbj_mc5tRE9rQsBFNlEDO78wJRcmfHYNWHM75WRdTJ37GXjNSYsgIs-AiNuj3wjG8eGRHNbEwlEuEx/pub?output=csv`;
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -46,65 +41,115 @@ export const fetchBettingData = async () => {
  * @returns {Array} Parsed data as an array of objects
  */
 const parseCSV = (csvText) => {
-    // Simple CSV parser
-    const lines = csvText.trim().split('\n');
-    const headers = lines[0].split(',').map(header => header.trim().replace(/^["']|["']$/g, ''));
+    try {
+        // Simple CSV parser
+        const lines = csvText.trim().split('\n');
 
-    const data = [];
-    let currentId = 1;
+        // Debug: Show raw CSV data
+        console.log('CSV first 200 chars:', csvText.substring(0, 200));
+        console.log('Number of lines:', lines.length);
 
-    for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(value => value.trim().replace(/^["']|["']$/g, ''));
+        const headers = lines[0].split(',').map(header => header.trim().replace(/^["']|["']$/g, ''));
+        console.log('Headers:', headers);
 
-        if (values.length === headers.length) {
-            // Create mapping from your column names to the expected names
-            const row = {};
+        const data = [];
+        let currentId = 1;
+        let currentWeek = null;
+        let weekBetCount = 0;
 
-            // Map each header to the corresponding value
-            headers.forEach((header, index) => {
-                const value = values[index];
-                const numericValue = isNaN(value) ? value : parseFloat(value);
+        for (let i = 1; i < lines.length; i++) {
+            try {
+                // Handle potential quoted values with commas inside them
+                let line = lines[i];
+                const values = [];
+                let insideQuotes = false;
+                let currentValue = '';
 
-                // Map your column names to the expected property names
-                switch(header) {
-                    case 'Week':
-                        row.week = numericValue;
-                        break;
-                    case 'Date Range':
-                        row.dateRange = value;
-                        break;
-                    case 'Stake':
-                        row.stake = numericValue;
-                        break;
-                    case 'odd':
-                        row.odds = numericValue;
-                        break;
-                    case 'Win / Lose':
-                        row.result = value;
-                        break;
-                    case 'Profit / Loss':
-                        row.profitLoss = numericValue;
-                        break;
-                    case 'Symbol (Win / Loss)':
-                        row.symbol = value;
-                        break;
-                    case 'Cumulative Budget':
-                        row.cumulativeBudget = numericValue;
-                        break;
-                    default:
-                        row[header] = numericValue;
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    if (char === '"' || char === "'") {
+                        insideQuotes = !insideQuotes;
+                    } else if (char === ',' && !insideQuotes) {
+                        values.push(currentValue.trim());
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
                 }
-            });
 
-            // Add generated ID and betNumber
-            row.id = currentId++;
-            row.betNumber = data.filter(item => item.week === row.week).length + 1;
+                // Push the last value
+                values.push(currentValue.trim());
 
-            data.push(row);
+                if (values.length === headers.length) {
+                    // Create mapping from your column names to the expected names
+                    const row = {};
+
+                    // Map each header to the corresponding value
+                    headers.forEach((header, index) => {
+                        const value = values[index];
+                        const numericValue = !isNaN(parseFloat(value)) ? parseFloat(value) : value;
+
+                        // Map your column names to the expected property names
+                        switch(header) {
+                            case 'Week':
+                                row.week = numericValue;
+                                // Track the current week for betNumber calculation
+                                if (currentWeek !== numericValue) {
+                                    currentWeek = numericValue;
+                                    weekBetCount = 0;
+                                }
+                                break;
+                            case 'Date Range':
+                                row.dateRange = value;
+                                break;
+                            case 'Stake':
+                                row.stake = numericValue;
+                                break;
+                            case 'odd':
+                                row.odds = numericValue;
+                                break;
+                            case 'Win / Lose':
+                                row.result = value;
+                                break;
+                            case 'Profit / Loss':
+                                row.profitLoss = numericValue;
+                                break;
+                            case 'Symbol (Win / Loss)':
+                                row.symbol = value;
+                                break;
+                            case 'Cumulative Budget':
+                                row.cumulativeBudget = numericValue;
+                                break;
+                            default:
+                                row[header] = numericValue;
+                        }
+                    });
+
+                    // Add generated ID and betNumber
+                    row.id = currentId++;
+                    weekBetCount++;
+                    row.betNumber = weekBetCount;
+
+                    // Print a debug row for the first few entries
+                    if (data.length < 3) {
+                        console.log('Parsed row:', row);
+                    }
+
+                    data.push(row);
+                } else {
+                    console.warn(`Line ${i} has ${values.length} values but there are ${headers.length} headers`);
+                }
+            } catch (lineError) {
+                console.error(`Error parsing line ${i}:`, lineError);
+            }
         }
-    }
 
-    return data;
+        console.log(`Successfully parsed ${data.length} rows of data`);
+        return data;
+    } catch (error) {
+        console.error('CSV parsing error:', error);
+        return [];
+    }
 };
 
 /**

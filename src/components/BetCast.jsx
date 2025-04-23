@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-    LineChart, Line, AreaChart, Area,
-    BarChart, Bar, PieChart, Pie, Cell, Sector,
+    Line, Bar, PieChart, Pie, Cell, Sector,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    ResponsiveContainer, RadarChart, Radar, PolarGrid,
-    PolarAngleAxis, PolarRadiusAxis, Treemap, RadialBarChart, RadialBar,
-    ComposedChart, Scatter
+    ResponsiveContainer, ComposedChart, Scatter,
+    BarChart, Area, AreaChart
 } from 'recharts';
 
 // Custom colors
@@ -34,11 +32,8 @@ const COLORS = {
 const fetchBettingData = async () => {
     try {
         // Use cors-anywhere proxy to get around CORS issues
-        // Note: For production use, you should set up your own proxy or backend
         const corsProxy = 'https://corsproxy.io/?';
-        const SHEET_ID = 'e/2PACX-1vTbj_mc5tRE9rQsBFNlEDO78wJRcmfHYNWHM75WRdTJ37GXjNSYsgIs-AiNuj3wjG8eGRHNbEwlEuEx';
-        const GID = '0'; // First sheet
-        const url = `${corsProxy}https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=${GID}&single=true&output=csv`;
+        const url = `${corsProxy}https://docs.google.com/spreadsheets/d/e/2PACX-1vTbj_mc5tRE9rQsBFNlEDO78wJRcmfHYNWHM75WRdTJ37GXjNSYsgIs-AiNuj3wjG8eGRHNbEwlEuEx/pub?output=csv`;
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -58,12 +53,6 @@ const fetchBettingData = async () => {
     }
 };
 
-/**
- * Parse CSV data into an array of objects
- *
- * @param {string} csvText - Raw CSV text from Google Sheets
- * @returns {Array} Parsed data as an array of objects
- */
 /**
  * Parse CSV data into an array of objects
  *
@@ -114,51 +103,50 @@ const parseCSV = (csvText) => {
                     // Create mapping from your column names to the expected names
                     const row = {};
 
+                    // Greek to English column mapping
+                    const columnMapping = {
+                        "Εβδομάδα": "week",
+                        "Ημερομηνίες": "dateRange",
+                        "Στοίχημα #": "betNumber",
+                        "Ποντάρισμα": "stake",
+                        "Απόδοση": "odds",
+                        "Αποτέλεσμα": "result",
+                        "Κέρδος/Ζημιά": "profitLoss",
+                        "✓ / ✗": "symbol",
+                        "Σωρευτικό Budget": "cumulativeBudget"
+                    };
+
                     // Map each header to the corresponding value
                     headers.forEach((header, index) => {
                         const value = values[index];
-                        const numericValue = !isNaN(parseFloat(value)) ? parseFloat(value) : value;
+                        let numericValue = value;
 
-                        // Map your column names to the expected property names
-                        switch(header) {
-                            case 'Week':
-                                row.week = numericValue;
-                                // Track the current week for betNumber calculation
-                                if (currentWeek !== numericValue) {
-                                    currentWeek = numericValue;
-                                    weekBetCount = 0;
-                                }
-                                break;
-                            case 'Date Range':
-                                row.dateRange = value;
-                                break;
-                            case 'Stake':
-                                row.stake = numericValue;
-                                break;
-                            case 'odd':
-                                row.odds = numericValue;
-                                break;
-                            case 'Win / Lose':
-                                row.result = value;
-                                break;
-                            case 'Profit / Loss':
-                                row.profitLoss = numericValue;
-                                break;
-                            case 'Symbol (Win / Loss)':
-                                row.symbol = value;
-                                break;
-                            case 'Cumulative Budget':
-                                row.cumulativeBudget = numericValue;
-                                break;
-                            default:
-                                row[header] = numericValue;
+                        // Handle numeric values
+                        if (!isNaN(parseFloat(value.replace('€', '').replace(',', '.')))) {
+                            numericValue = parseFloat(value.replace('€', '').replace(',', '.'));
+                        }
+
+                        // Use the mapping or fallback to the original header
+                        const mappedHeader = columnMapping[header] || header;
+                        row[mappedHeader] = numericValue;
+
+                        // Track the current week for betNumber calculation
+                        // eslint-disable-next-line no-loop-func
+                        if (header === "Εβδομάδα") {
+                            if (currentWeek !== numericValue) {
+                                currentWeek = numericValue;
+                                weekBetCount = 0;
+                            }
                         }
                     });
 
-                    // Add generated ID and betNumber
+                    // Add generated ID
                     row.id = currentId++;
-                    weekBetCount++;
-                    row.betNumber = weekBetCount;
+
+                    // Ensure data consistency
+                    if (typeof row.week === 'string') row.week = parseFloat(row.week);
+                    if (typeof row.odds === 'string') row.odds = parseFloat(row.odds.replace(',', '.'));
+                    if (typeof row.stake === 'string') row.stake = parseFloat(row.stake);
 
                     // Print a debug row for the first few entries
                     if (data.length < 3) {
@@ -239,17 +227,35 @@ const calculateWeeklySummary = (data) => {
         const weekBets = data.filter(bet => bet.week === weekNum);
         const wins = weekBets.filter(bet => bet.result === "Win").length;
         const losses = weekBets.filter(bet => bet.result === "Lose").length;
-        const weeklyProfit = weekBets.reduce((sum, bet) => sum + bet.profitLoss, 0);
+
+        // Convert profitLoss from string to number if necessary
+        const weeklyProfit = weekBets.reduce((sum, bet) => {
+            let profitLossValue = bet.profitLoss;
+            if (typeof profitLossValue === 'string') {
+                profitLossValue = parseFloat(profitLossValue.replace('€', '').replace(',', '.'));
+            }
+            return sum + (isNaN(profitLossValue) ? 0 : profitLossValue);
+        }, 0);
+
         const lastBet = weekBets[weekBets.length - 1];
+        let cumulativeBudget = 0;
+
+        if (lastBet) {
+            if (typeof lastBet.cumulativeBudget === 'string') {
+                cumulativeBudget = parseFloat(lastBet.cumulativeBudget.replace('€', '').replace(',', '.'));
+            } else {
+                cumulativeBudget = lastBet.cumulativeBudget;
+            }
+        }
 
         weeklySummary.push({
             week: weekNum,
-            dateRange: weekBets[0].dateRange,
+            dateRange: weekBets[0]?.dateRange || '',
             wins: wins,
             losses: losses,
-            winRate: wins / (wins + losses),
+            winRate: (wins + losses) > 0 ? wins / (wins + losses) : 0,
             totalProfitLoss: parseFloat(weeklyProfit.toFixed(2)),
-            cumulativeBudget: lastBet.cumulativeBudget
+            cumulativeBudget: cumulativeBudget
         });
     });
 
@@ -269,7 +275,6 @@ const BettingVisualizations = () => {
     const [weeklyProfitData, setWeeklyProfitData] = useState([]);
     const [winLossData, setWinLossData] = useState([{ name: 'Νίκες', value: 0 }, { name: 'Ήττες', value: 0 }]);
     const [oddsDistributionData, setOddsDistributionData] = useState([]);
-    const [weekdayData, setWeekdayData] = useState([]);
     const [winRateByWeek, setWinRateByWeek] = useState([]);
 
     // Fetch data on component mount
@@ -281,10 +286,12 @@ const BettingVisualizations = () => {
 
                 // Try to fetch from Google Sheets, fall back to sample data
                 const data = await fetchBettingData();
+                console.log("Fetched data:", data.slice(0, 3)); // Debug first 3 items
                 setBettingData(data);
 
                 // Calculate summary statistics
                 const summary = calculateWeeklySummary(data);
+                console.log("Summary data:", summary); // Debug summary
                 setSummaryData(summary);
 
                 setLoading(false);
@@ -307,12 +314,22 @@ const BettingVisualizations = () => {
     // Process chart data whenever betting data changes
     useEffect(() => {
         if (bettingData.length > 0 && summaryData.length > 0) {
+            // Debug
+            console.log("Processing chart data from betting data:", bettingData.length, "items");
+
             // Budget chart data
-            setBudgetChartData(bettingData.map(item => ({
-                id: item.id,
-                value: item.cumulativeBudget,
-                result: item.result
-            })));
+            const budgetData = bettingData.map(item => {
+                let budget = item.cumulativeBudget;
+                if (typeof budget === 'string') {
+                    budget = parseFloat(budget.replace('€', '').replace(',', '.'));
+                }
+                return {
+                    id: item.id,
+                    value: budget,
+                    result: item.result
+                };
+            });
+            setBudgetChartData(budgetData);
 
             // Weekly profit data
             setWeeklyProfitData(summaryData.map(week => ({
@@ -322,35 +339,47 @@ const BettingVisualizations = () => {
             })));
 
             // Win/Loss ratio data
+            const wins = bettingData.filter(bet => bet.result === 'Win').length;
+            const losses = bettingData.filter(bet => bet.result === 'Lose').length;
             setWinLossData([
-                { name: 'Νίκες', value: bettingData.filter(bet => bet.result === 'Win').length },
-                { name: 'Ήττες', value: bettingData.filter(bet => bet.result === 'Lose').length }
+                { name: 'Νίκες', value: wins },
+                { name: 'Ήττες', value: losses }
             ]);
+            console.log("Win/Loss data:", wins, "wins,", losses, "losses");
 
             // Odds distribution data
-            const oddsData = Array.from({ length: 10 }, (_, i) => {
+// Odds distribution data
+// First create groups for odds 1.5-3.5 in 0.25 increments
+            const oddsRangeGroups = Array.from({ length: 8 }, (_, i) => {
                 const min = 1.5 + i * 0.25;
                 const max = min + 0.25;
-                const count = bettingData.filter(bet => bet.odds >= min && bet.odds < max).length;
+                return { min, max, label: `${min.toFixed(2)} - ${max.toFixed(2)}` };
+            });
+
+// Add the additional groups for higher odds
+            oddsRangeGroups.push({ min: 3.5, max: 5.0, label: '3.50 - 5.00' });
+            oddsRangeGroups.push({ min: 5.0, max: Infinity, label: '5.00+' });
+
+            const oddsData = oddsRangeGroups.map(group => {
+                const count = bettingData.filter(bet => {
+                    const odds = typeof bet.odds === 'string'
+                        ? parseFloat(bet.odds.replace(',', '.'))
+                        : bet.odds;
+                    return odds >= group.min && odds < group.max;
+                }).length;
+
                 return {
-                    range: `${min.toFixed(2)} - ${max.toFixed(2)}`,
+                    range: group.label,
                     count: count,
-                    winCount: bettingData.filter(bet => bet.odds >= min && bet.odds < max && bet.result === 'Win').length
+                    winCount: bettingData.filter(bet => {
+                        const odds = typeof bet.odds === 'string'
+                            ? parseFloat(bet.odds.replace(',', '.'))
+                            : bet.odds;
+                        return odds >= group.min && odds < group.max && bet.result === 'Win';
+                    }).length
                 };
             }).filter(item => item.count > 0);
             setOddsDistributionData(oddsData);
-
-            // Weekday data
-            // Note: For real data, you'd extract this from dates in the Google Sheet
-            setWeekdayData([
-                { name: 'Δευτέρα', value: 7, winRate: 0.71 },
-                { name: 'Τρίτη', value: 6, winRate: 0.5 },
-                { name: 'Τετάρτη', value: 4, winRate: 0.25 },
-                { name: 'Πέμπτη', value: 5, winRate: 0.6 },
-                { name: 'Παρασκευή', value: 8, winRate: 0.625 },
-                { name: 'Σάββατο', value: 5, winRate: 0.4 },
-                { name: 'Κυριακή', value: 5, winRate: 0.6 }
-            ]);
 
             // Win rate by week
             setWinRateByWeek(summaryData.map(week => ({
@@ -649,15 +678,23 @@ const BettingVisualizations = () => {
             </div>
         );
     }
+
     // Calculate win percentage safely
-    const winPercentage = winLossData[0].value > 0 && bettingData.length > 0
+    const winPercentage = winLossData[0]?.value > 0 && bettingData.length > 0
         ? ((winLossData[0].value / bettingData.length) * 100).toFixed(1)
         : "0.0";
 
-// Get last budget value safely
-    const lastBudget = bettingData.length > 0
-        ? bettingData[bettingData.length - 1].cumulativeBudget
-        : 0;
+    // Get last budget value safely from the last entry
+    let lastBudget = 0;
+    if (bettingData.length > 0) {
+        const lastEntry = bettingData[bettingData.length - 1];
+        if (typeof lastEntry.cumulativeBudget === 'string') {
+            lastBudget = parseFloat(lastEntry.cumulativeBudget.replace('€', '').replace(',', '.'));
+        } else {
+            lastBudget = lastEntry.cumulativeBudget || 0;
+        }
+    }
+
     return (
         <div className="min-h-screen p-6 bg-gray-100">
             <h1 className="text-3xl font-bold mb-6 text-center">Αναλυτικά Στατιστικά Στοιχημάτων</h1>
@@ -677,7 +714,7 @@ const BettingVisualizations = () => {
                         <p className="text-sm text-blue-600">Συνολικά Στοιχήματα</p>
                     </div>
                     <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-lg text-center shadow">
-                        <p className="text-xl font-bold text-green-800">{winLossData[0].value}</p>
+                        <p className="text-xl font-bold text-green-800">{winLossData[0]?.value || 0}</p>
                         <p className="text-sm text-green-600">Επιτυχημένα Στοιχήματα</p>
                     </div>
                     <div className="bg-gradient-to-r from-purple-100 to-purple-200 p-4 rounded-lg text-center shadow">
@@ -699,7 +736,7 @@ const BettingVisualizations = () => {
                             {lastBudget.toFixed(2)}€
                         </p>
                         <p className={`text-sm ${
-                            bettingData[bettingData.length - 1].cumulativeBudget >= 100
+                            lastBudget >= 100
                                 ? 'text-green-600'
                                 : 'text-red-600'
                         }`}>
@@ -711,7 +748,7 @@ const BettingVisualizations = () => {
 
             <div className="mb-6 bg-white p-4 rounded-lg shadow-lg">
                 <h2 className="text-xl font-bold mb-4">Επιλογή Γραφήματος</h2>
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                     {[
                         { id: 'budget', name: 'Εξέλιξη Ποσού', icon: '📈' },
                         { id: 'weeklyProfit', name: 'Εβδομαδιαία Κέρδη', icon: '💰' },
