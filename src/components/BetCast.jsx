@@ -6,23 +6,42 @@ import {
     BarChart, Area, AreaChart
 } from 'recharts';
 
-// Custom colors - original palette adjusted for dark mode
-const COLORS = {
-    win: '#00C49F',        // Keep original green for wins
-    lose: '#FF5252',       // Keep original red for losses
-    neutral: '#8884d8',    // Keep original purple for neutral
-    profit: '#4CAF50',     // Keep original green for profit
-    loss: '#F44336',       // Keep original red for loss
-    background: '#121212', // Dark background
-    chartBackground: '#1e1e1e',
-    gradientStart: '#8884d8',
-    gradientEnd: '#82ca9d',
-    budgetLine: '#3f51b5', // Keep original blue
-    referenceStart: '#0088FE',
-    referenceEnd: '#FFBB28',
-    lightGray: '#e0e0e0',
-    darkGray: '#333333'
-};
+// Theme-aware colors
+const getLightColors = () => ({
+    // Light theme colors - refined palette
+    win: '#2e7d32',         // Darker green for better contrast
+    lose: '#c62828',        // Darker red for better contrast
+    neutral: '#5c6bc0',     // Indigo for neutral
+    profit: '#2e7d32',      // Same green for profit
+    loss: '#c62828',        // Same red for loss
+    background: '#f5f7fa',  // Slight blue tint for background
+    chartBackground: '#ffffff',
+    gradientStart: '#5c6bc0',
+    gradientEnd: '#4caf50',
+    budgetLine: '#3949ab',  // Indigo for budget line
+    referenceStart: '#1e88e5', // Blue
+    referenceEnd: '#ffa000',   // Amber
+    lightGray: '#757575',      // Medium gray
+    darkGray: '#424242'        // Dark gray
+});
+
+const getDarkColors = () => ({
+    // Dark theme colors - refined palette
+    win: '#4caf50',        // Slightly brighter green for dark mode
+    lose: '#f44336',       // Slightly brighter red for dark mode
+    neutral: '#7986cb',    // Lighter indigo for dark mode
+    profit: '#4caf50',     // Same green
+    loss: '#f44336',       // Same red
+    background: '#1a1a2a', 
+    chartBackground: '#242436',
+    gradientStart: '#7986cb',
+    gradientEnd: '#81c784',
+    budgetLine: '#5c6bc0', // Brighter indigo
+    referenceStart: '#42a5f5', // Lighter blue
+    referenceEnd: '#ffb300',   // Lighter amber
+    lightGray: '#e0e0e0',      // Light gray
+    darkGray: '#9e9e9e'        // Medium gray
+});
 
 /**
  * Fetches betting data from Google Sheets using a CORS proxy
@@ -269,6 +288,8 @@ const BettingVisualizations = () => {
     const [summaryData, setSummaryData] = useState([]);
     const [activeIndex, setActiveIndex] = useState(0);
     const [selectedVisualization, setSelectedVisualization] = useState('budget');
+    const [isDarkMode, setIsDarkMode] = useState(document.body.classList.contains('dark-mode'));
+    const THEME_COLORS = isDarkMode ? getDarkColors() : getLightColors();
 
     // Data for various charts
     const [budgetChartData, setBudgetChartData] = useState([]);
@@ -309,6 +330,25 @@ const BettingVisualizations = () => {
         };
 
         loadData();
+    }, []);
+
+    useEffect(() => {
+        const handleThemeChange = () => {
+            setIsDarkMode(document.body.classList.contains('dark-mode'));
+        };
+        
+        // Listen for theme changes
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    handleThemeChange();
+                }
+            });
+        });
+        
+        observer.observe(document.body, { attributes: true });
+        
+        return () => observer.disconnect();
     }, []);
 
     // Process chart data whenever betting data changes
@@ -450,8 +490,8 @@ const BettingVisualizations = () => {
                                 >
                                     <defs>
                                         <linearGradient id="colorBudget" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor={COLORS.budgetLine} stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor={COLORS.budgetLine} stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={THEME_COLORS.budgetLine} stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor={THEME_COLORS.budgetLine} stopOpacity={0}/>
                                         </linearGradient>
                                     </defs>
                                     <XAxis dataKey="id" name="Στοίχημα" />
@@ -466,7 +506,7 @@ const BettingVisualizations = () => {
                                         type="monotone"
                                         dataKey="value"
                                         name="Διαθέσιμο Ποσό"
-                                        stroke={COLORS.budgetLine}
+                                        stroke={THEME_COLORS.budgetLine}
                                         fillOpacity={1}
                                         fill="url(#colorBudget)"
                                     />
@@ -474,24 +514,24 @@ const BettingVisualizations = () => {
                                         type="monotone"
                                         dataKey="value"
                                         name="Διαθέσιμο Ποσό"
-                                        stroke={COLORS.budgetLine}
+                                        stroke={THEME_COLORS.budgetLine}
                                         dot={{
-                                            stroke: COLORS.darkGray,
+                                            stroke: THEME_COLORS.darkGray,
                                             strokeWidth: 2,
                                             r: 4,
-                                            fill: (entry) => entry.result === 'Win' ? COLORS.win : COLORS.lose
+                                            fill: (entry) => entry.result === 'Win' ? THEME_COLORS.win : THEME_COLORS.lose
                                         }}
                                         activeDot={{ r: 8 }}
                                     />
                                     <Scatter
                                         dataKey="value"
-                                        fill={(entry) => entry.result === 'Win' ? COLORS.win : COLORS.lose}
+                                        fill={(entry) => entry.result === 'Win' ? THEME_COLORS.win : THEME_COLORS.lose}
                                         opacity={0}
                                     />
                                     <Line
                                         dataKey={() => 100}
                                         name="Αρχικό Ποσό"
-                                        stroke={COLORS.darkGray}
+                                        stroke={THEME_COLORS.darkGray}
                                         strokeDasharray="5 5"
                                         dot={false}
                                     />
@@ -526,7 +566,7 @@ const BettingVisualizations = () => {
                                         {weeklyProfitData.map((entry, index) => (
                                             <Cell
                                                 key={`cell-${index}`}
-                                                fill={entry.profit >= 0 ? COLORS.profit : COLORS.loss}
+                                                fill={entry.profit >= 0 ? THEME_COLORS.profit : THEME_COLORS.loss}
                                                 fillOpacity={0.8}
                                             />
                                         ))}
@@ -567,7 +607,7 @@ const BettingVisualizations = () => {
                                         {winLossData.map((entry, index) => (
                                             <Cell
                                                 key={`cell-${index}`}
-                                                fill={index === 0 ? COLORS.win : COLORS.lose}
+                                                fill={index === 0 ? THEME_COLORS.win : THEME_COLORS.lose}
                                             />
                                         ))}
                                     </Pie>
@@ -603,14 +643,14 @@ const BettingVisualizations = () => {
                                     <Bar
                                         dataKey="count"
                                         name="Συνολικά Στοιχήματα"
-                                        fill={COLORS.neutral}
+                                        fill={THEME_COLORS.neutral}
                                         fillOpacity={0.6}
                                         radius={[5, 5, 0, 0]}
                                     />
                                     <Bar
                                         dataKey="winCount"
                                         name="Επιτυχημένα Στοιχήματα"
-                                        fill={COLORS.win}
+                                        fill={THEME_COLORS.win}
                                         radius={[5, 5, 0, 0]}
                                     />
                                 </BarChart>
@@ -642,7 +682,7 @@ const BettingVisualizations = () => {
                                         {winRateByWeek.map((entry, index) => (
                                             <Cell
                                                 key={`cell-${index}`}
-                                                fill={entry.winRate >= 50 ? COLORS.win : COLORS.lose}
+                                                fill={entry.winRate >= 50 ? THEME_COLORS.win : THEME_COLORS.lose}
                                                 fillOpacity={0.7 + (entry.winRate / 200)}
                                             />
                                         ))}

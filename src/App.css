@@ -379,3 +379,125 @@ body {
 .text-gray-600, .text-gray-700 {
   color: #b0b0b0;
 }
+
+/* Theme variables */
+:root {
+  /* Light theme colors - refined */
+  --background-color: #f5f7fa;
+  --card-background: #ffffff;
+  --text-color: #333333;
+  --header-bg: #3949ab;  /* Indigo */
+  --header-text: #ffffff;
+  --footer-bg: #263238;  /* Blue gray */
+  --footer-text: #ffffff;
+  --border-color: #e0e0e0;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --chart-grid: #e0e0e0;
+  --success-color: #2e7d32;
+  --error-color: #c62828;
+}
+
+.dark-mode {
+  /* Dark theme colors - refined */
+  --background-color: #1a1a2a;
+  --card-background: #242436;
+  --text-color: #e0e0e0;
+  --header-bg: #1e2438;
+  --header-text: #ffffff;
+  --footer-bg: #0f111a;
+  --footer-text: #ffffff;
+  --border-color: #333344;
+  --shadow-color: rgba(0, 0, 0, 0.25);
+  --chart-grid: #3a3a4a;
+  --success-color: #4caf50;
+  --error-color: #f44336;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.App {
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+/* Header and footer */
+.bg-blue-600 {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+.bg-gray-800 {
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
+}
+
+/* Card backgrounds */
+.bg-white, .bg-gray-100 {
+  background-color: var(--card-background);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px var(--shadow-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* For chart elements */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--chart-grid);
+}
+
+.recharts-text {
+  fill: var(--text-color);
+}
+
+/* Button colors */
+.bg-blue-500 {
+  background-color: var(--header-bg);
+}
+
+.bg-blue-500:hover {
+  background-color: var(--header-bg);
+  filter: brightness(120%);
+}
+
+/* Card hover effects */
+.bg-white:hover, .bg-gray-100:hover {
+  box-shadow: 0 8px 15px var(--shadow-color);
+  transform: translateY(-3px);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.theme-toggle svg {
+  color: white;
+}
+
+/* Make sure text is readable in both themes */
+.dark-mode .text-gray-600, 
+.dark-mode .text-gray-700 {
+  color: #b0b0b0;
+}
+
+.light-mode .text-gray-600, 
+.light-mode .text-gray-700 {
+  color: #4a4a4a;
+}
