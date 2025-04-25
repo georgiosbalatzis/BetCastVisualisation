@@ -501,3 +501,40 @@ body {
 .light-mode .text-gray-700 {
   color: #4a4a4a;
 }
+
+/* Social Media Links */
+.social-media {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.social-media a {
+  color: #e0e0e0;
+  font-size: 1.2rem;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.social-media a:hover {
+  color: #fff;
+  transform: translateY(-5px);
+  background: linear-gradient(45deg, #0073e6, #00ffff);
+}
+
+/* Logo styling */
+header img {
+  transition: transform 0.3s ease;
+}
+
+header:hover img {
+  transform: scale(1.05);
+}

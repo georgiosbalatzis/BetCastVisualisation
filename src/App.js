@@ -18,7 +18,10 @@ function App() {
         <div className="App">
             <header className="bg-blue-600 text-white p-4 shadow-md">
                 <div className="container mx-auto flex justify-between items-center">
-                    <h1 className="text-xl font-bold">BetCast F1Stories</h1>
+                    <div className="flex items-center">
+                        <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="F1 Stories Logo" className="mr-3" style={{height: '40px'}} />
+                        <h1 className="text-xl font-bold">BetCast F1Stories</h1>
+                    </div>
                     <div className="flex items-center">
                         <button 
                             onClick={toggleTheme} 
@@ -44,7 +47,7 @@ function App() {
                             )}
                         </button>
                         <div className="text-sm">
-                            <span>Powered by Georgios Balatzis</span>
+                            <span>Powered by Georgios Balatzis & F1 Stories</span>
                         </div>
                     </div>
                 </div>
@@ -62,9 +65,29 @@ function App() {
                             rel="noopener noreferrer"
                             className="text-blue-300 hover:underline"
                         >
-                            View on F1stories.gr
+                            Visit us at F1Stories.gr
                         </a>
                     </p>
+                    <div className="social-media mt-3">
+                        <a href="https://www.youtube.com/@F1_Stories_Original" target="_blank" rel="noopener noreferrer">
+                            <i className="fab fa-youtube"></i>
+                        </a>
+                        <a href="https://www.facebook.com/f1storiess" target="_blank" rel="noopener noreferrer">
+                            <i className="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://www.instagram.com/myf1stories/" target="_blank" rel="noopener noreferrer">
+                            <i className="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@f1stories6" target="_blank" rel="noopener noreferrer">
+                            <i className="fab fa-tiktok"></i>
+                        </a>
+                        <a href="mailto:myf1stories@gmail.com">
+                            <i className="fas fa-envelope"></i>
+                        </a>
+                        <a href="https://open.spotify.com/show/0qC80ahDY824BME9FtxryS?si=bae4f48cf1ee4ded" target="_blank" rel="noopener noreferrer">
+                            <i className="fab fa-spotify"></i>
+                        </a>
+                    </div>
                 </div>
             </footer>
         </div>
