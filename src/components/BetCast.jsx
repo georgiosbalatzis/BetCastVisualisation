@@ -191,6 +191,18 @@ const parseCSV = (csvText) => {
 };
 
 /**
+ * Calculate ROI for a bet
+ *
+ * @param {number} stake - Bet stake
+ * @param {number} profitLoss - Profit or loss from the bet
+ * @returns {number} ROI percentage
+ */
+const calculateROI = (stake, profitLoss) => {
+    if (stake === 0) return 0;
+    return (profitLoss / stake) * 100;
+};
+
+/**
  * Generate sample betting data if the fetch fails
  * This replicates the same structure as expected from the Google Sheet
  *
@@ -257,6 +269,18 @@ const calculateWeeklySummary = (data) => {
             return sum + (isNaN(profitLossValue) ? 0 : profitLossValue);
         }, 0);
 
+        // Calculate total stake for the week
+        const weeklyStake = weekBets.reduce((sum, bet) => {
+            let stakeValue = bet.stake;
+            if (typeof stakeValue === 'string') {
+                stakeValue = parseFloat(stakeValue.replace('€', '').replace(',', '.'));
+            }
+            return sum + (isNaN(stakeValue) ? 0 : stakeValue);
+        }, 0);
+
+        // Calculate weekly ROI
+        const weeklyROI = calculateROI(weeklyStake, weeklyProfit);
+
         const lastBet = weekBets[weekBets.length - 1];
         let cumulativeBudget = 0;
 
@@ -275,8 +299,22 @@ const calculateWeeklySummary = (data) => {
             losses: losses,
             winRate: (wins + losses) > 0 ? wins / (wins + losses) : 0,
             totalProfitLoss: parseFloat(weeklyProfit.toFixed(2)),
-            cumulativeBudget: cumulativeBudget
+            cumulativeBudget: cumulativeBudget,
+            weeklyROI: parseFloat(weeklyROI.toFixed(2)),
+            totalStake: weeklyStake
         });
+    });
+
+    // Calculate cumulative ROI
+    let totalStakeAllWeeks = 0;
+    let totalProfitAllWeeks = 0;
+
+    weeklySummary.forEach(week => {
+        totalStakeAllWeeks += week.totalStake;
+        totalProfitAllWeeks += week.totalProfitLoss;
+
+        // Add cumulative ROI to each week
+        week.cumulativeROI = calculateROI(totalStakeAllWeeks, totalProfitAllWeeks);
     });
 
     return weeklySummary;
@@ -297,6 +335,8 @@ const BettingVisualizations = () => {
     const [weeklyProfitData, setWeeklyProfitData] = useState([]);
     const [winLossData, setWinLossData] = useState([{ name: 'Νίκες', value: 0 }, { name: 'Ήττες', value: 0 }]);
     const [oddsDistributionData, setOddsDistributionData] = useState([]);
+    const [roiData, setRoiData] = useState([]);
+    const [cumulativeRoiData, setCumulativeRoiData] = useState([]);
     const [winRateByWeek, setWinRateByWeek] = useState([]);
 
     // Fetch data on component mount
@@ -402,6 +442,18 @@ const BettingVisualizations = () => {
                 };
             }).filter(item => item.count > 0);
             setOddsDistributionData(oddsData);
+
+            // ROI data
+            setRoiData(summaryData.map(week => ({
+                week: `Εβδ. ${week.week}`,
+                roi: week.weeklyROI
+            })));
+
+            // Cumulative ROI data
+            setCumulativeRoiData(summaryData.map(week => ({
+                week: `Εβδ. ${week.week}`,
+                roi: parseFloat(week.cumulativeROI.toFixed(2))
+            })));
 
             // Win rate by week
             setWinRateByWeek(summaryData.map(week => ({
@@ -683,6 +735,98 @@ const BettingVisualizations = () => {
                     </div>
                 );
 
+            case 'weeklyROI':
+                return (
+                    <div className="mb-8 bg-white p-6 rounded-lg shadow-lg">
+                        <h3 className="text-xl font-bold mb-4 text-center">Εβδομαδιαίο ROI %</h3>
+                        <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={roiData}
+                                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="week" />
+                                    <YAxis tickFormatter={(value) => `${value}%`} />
+                                    <Tooltip formatter={(value) => [`${value}%`, "ROI"]} />
+                                    <Legend />
+                                    <Bar
+                                        dataKey="roi"
+                                        name="Εβδομαδιαίο ROI %"
+                                        radius={[5, 5, 0, 0]}
+                                    >
+                                        {roiData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.roi >= 0 ? THEME_COLORS.profit : THEME_COLORS.loss}
+                                                fillOpacity={0.8}
+                                            />
+                                        ))}
+                                    </Bar>
+                                    <Line
+                                        type="monotone"
+                                        dataKey={() => 0}
+                                        name="Όριο Κερδοφορίας"
+                                        stroke="#ff7300"
+                                        strokeDasharray="3 3"
+                                        dot={false}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                );
+
+            case 'cumulativeROI':
+                return (
+                    <div className="mb-8 bg-white p-6 rounded-lg shadow-lg">
+                        <h3 className="text-xl font-bold mb-4 text-center">Συνολικό ROI %</h3>
+                        <div className="h-80">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <ComposedChart
+                                    data={cumulativeRoiData}
+                                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                                >
+                                    <defs>
+                                        <linearGradient id="colorROI" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor={THEME_COLORS.budgetLine} stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor={THEME_COLORS.budgetLine} stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="week" />
+                                    <YAxis tickFormatter={(value) => `${value}%`} />
+                                    <Tooltip formatter={(value) => [`${value}%`, "Συνολικό ROI"]} />
+                                    <Legend />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="roi"
+                                        name="Συνολικό ROI %"
+                                        stroke={THEME_COLORS.budgetLine}
+                                        fillOpacity={1}
+                                        fill="url(#colorROI)"
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="roi"
+                                        name="Συνολικό ROI %"
+                                        stroke={THEME_COLORS.budgetLine}
+                                        dot={{ r: 4 }}
+                                        activeDot={{ r: 8 }}
+                                    />
+                                    <Line
+                                        dataKey={() => 0}
+                                        name="Όριο Κερδοφορίας"
+                                        stroke={THEME_COLORS.darkGray}
+                                        strokeDasharray="5 5"
+                                        dot={false}
+                                    />
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                );
+
             default:
                 return null;
         }
@@ -730,7 +874,7 @@ const BettingVisualizations = () => {
 
             <div className="mb-6 bg-white p-4 rounded-lg shadow-lg">
                 <h2 className="text-xl font-bold mb-4">Βασικά Στατιστικά</h2>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div className="bg-gradient-to-r from-blue-100 to-blue-200 p-4 rounded-lg text-center shadow">
                         <p className="text-xl font-bold text-blue-800">{bettingData.length}</p>
                         <p className="text-sm text-blue-600">Συνολικά Στοιχήματα</p>
@@ -776,16 +920,16 @@ const BettingVisualizations = () => {
                         { id: 'weeklyProfit', name: 'Εβδομαδιαία Κέρδη', icon: '💰' },
                         { id: 'winLossRatio', name: 'Νίκες/Ήττες', icon: '🎯' },
                         { id: 'oddsDistribution', name: 'Αποδόσεις', icon: '📊' },
-                        { id: 'winRateByWeek', name: 'Επιτυχία ανά Εβδομάδα', icon: '🏆' }
+                        { id: 'winRateByWeek', name: 'Επιτυχία ανά Εβδομάδα', icon: '🏆' },
+                        { id: 'weeklyROI', name: 'Εβδομαδιαίο ROI', icon: '📊' },
+                        { id: 'cumulativeROI', name: 'Συνολικό ROI', icon: '📈' }
                     ].map(item => (
                         <button
                             key={item.id}
                             className={`p-3 rounded-lg text-center transition-all ${
                                 selectedVisualization === item.id
                                     ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                                    : isDarkMode
-                                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                        : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                             onClick={() => setSelectedVisualization(item.id)}
                         >

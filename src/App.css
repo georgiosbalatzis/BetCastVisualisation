@@ -538,3 +538,9 @@ header img {
 header:hover img {
   transform: scale(1.05);
 }
+
+@media (min-width: 768px) {
+  .md\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
