@@ -382,19 +382,19 @@ body {
 
 /* Theme variables */
 :root {
-  /* Light theme colors - refined */
-  --background-color: #f5f7fa;
-  --card-background: #ffffff;
-  --text-color: #333333;
-  --header-bg: #3949ab;  /* Indigo */
+  /* Light theme colors - modern and easy on the eyes */
+  --background-color: #f8fafc;  /* Soft gray-blue */
+  --card-background: #f1f5f9;   /* Lighter soft blue-gray */
+  --text-color: #334155;        /* Slate gray - easier on eyes than pure black */
+  --header-bg: #334155;         /* Slate gray header */
   --header-text: #ffffff;
-  --footer-bg: #263238;  /* Blue gray */
+  --footer-bg: #334155;         /* Matching footer */
   --footer-text: #ffffff;
-  --border-color: #e0e0e0;
-  --shadow-color: rgba(0, 0, 0, 0.08);
-  --chart-grid: #e0e0e0;
-  --success-color: #2e7d32;
-  --error-color: #c62828;
+  --border-color: #cbd5e1;      /* Soft border */
+  --shadow-color: rgba(100, 116, 139, 0.08);  /* Soft shadow */
+  --chart-grid: #cbd5e1;        /* Light grid lines */
+  --success-color: #00695c;     /* Teal success */
+  --error-color: #c62828;       /* Refined error red */
 }
 
 .dark-mode {

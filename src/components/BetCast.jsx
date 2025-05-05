@@ -7,22 +7,23 @@ import {
 } from 'recharts';
 
 // Theme-aware colors
+
 const getLightColors = () => ({
-    // Light theme colors - refined palette
-    win: '#2e7d32',         // Darker green for better contrast
-    lose: '#c62828',        // Darker red for better contrast
-    neutral: '#5c6bc0',     // Indigo for neutral
-    profit: '#2e7d32',      // Same green for profit
-    loss: '#c62828',        // Same red for loss
-    background: '#f5f7fa',  // Slight blue tint for background
-    chartBackground: '#ffffff',
-    gradientStart: '#5c6bc0',
-    gradientEnd: '#4caf50',
-    budgetLine: '#3949ab',  // Indigo for budget line
-    referenceStart: '#1e88e5', // Blue
-    referenceEnd: '#ffa000',   // Amber
-    lightGray: '#757575',      // Medium gray
-    darkGray: '#424242'        // Dark gray
+    // Light theme colors - modern and easy on the eyes
+    win: '#00695c',         // Teal green for better contrast
+    lose: '#c62828',        // Refined red for contrast
+    neutral: '#5c6bc0',     // Modern indigo
+    profit: '#00695c',      // Teal green for profit
+    loss: '#c62828',        // Refined red for loss
+    background: '#f8fafc',  // Very light blue-gray tint
+    chartBackground: '#f1f5f9', // Soft blue-gray for chart background
+    gradientStart: '#5c6bc0', // Modern indigo
+    gradientEnd: '#26a69a',   // Teal accent
+    budgetLine: '#3949ab',    // Deeper indigo for budget line
+    referenceStart: '#1e88e5', // Modern blue
+    referenceEnd: '#f57c00',   // Warm orange
+    lightGray: '#78909c',      // Blue-gray
+    darkGray: '#455a64'        // Deeper blue-gray
 });
 
 const getDarkColors = () => ({
@@ -288,7 +289,7 @@ const BettingVisualizations = () => {
     const [summaryData, setSummaryData] = useState([]);
     const [activeIndex, setActiveIndex] = useState(0);
     const [selectedVisualization, setSelectedVisualization] = useState('budget');
-    const [isDarkMode, setIsDarkMode] = useState(document.body.classList.contains('dark-mode'));
+    const [isDarkMode] = useState(true);
     const THEME_COLORS = isDarkMode ? getDarkColors() : getLightColors();
 
     // Data for various charts
@@ -330,25 +331,6 @@ const BettingVisualizations = () => {
         };
 
         loadData();
-    }, []);
-
-    useEffect(() => {
-        const handleThemeChange = () => {
-            setIsDarkMode(document.body.classList.contains('dark-mode'));
-        };
-        
-        // Listen for theme changes
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    handleThemeChange();
-                }
-            });
-        });
-        
-        observer.observe(document.body, { attributes: true });
-        
-        return () => observer.disconnect();
     }, []);
 
     // Process chart data whenever betting data changes
@@ -480,7 +462,7 @@ const BettingVisualizations = () => {
         switch(selectedVisualization) {
             case 'budget':
                 return (
-                    <div className="mb-8 bg-white p-6 rounded-lg shadow-lg">
+                    <div className={`mb-8 rounded-lg shadow-lg ${isDarkMode ? 'bg-[#242436]' : 'bg-[#f1f5f9]'} p-6`}>
                         <h3 className="text-xl font-bold mb-4 text-center">Εξέλιξη Διαθέσιμου Ποσού</h3>
                         <div className="h-80">
                             <ResponsiveContainer width="100%" height="100%">
@@ -489,9 +471,9 @@ const BettingVisualizations = () => {
                                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                                 >
                                     <defs>
-                                        <linearGradient id="colorBudget" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor={THEME_COLORS.budgetLine} stopOpacity={0.8}/>
-                                            <stop offset="95%" stopColor={THEME_COLORS.budgetLine} stopOpacity={0}/>
+                                        <linearGradient id="colorBudgetLight" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#3949ab" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="#3949ab" stopOpacity={0.1}/>
                                         </linearGradient>
                                     </defs>
                                     <XAxis dataKey="id" name="Στοίχημα" />
@@ -508,7 +490,7 @@ const BettingVisualizations = () => {
                                         name="Διαθέσιμο Ποσό"
                                         stroke={THEME_COLORS.budgetLine}
                                         fillOpacity={1}
-                                        fill="url(#colorBudget)"
+                                        fill={isDarkMode ? "url(#colorBudget)" : "url(#colorBudgetLight)"}
                                     />
                                     <Line
                                         type="monotone"
@@ -801,7 +783,9 @@ const BettingVisualizations = () => {
                             className={`p-3 rounded-lg text-center transition-all ${
                                 selectedVisualization === item.id
                                     ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    : isDarkMode
+                                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                             }`}
                             onClick={() => setSelectedVisualization(item.id)}
                         >
