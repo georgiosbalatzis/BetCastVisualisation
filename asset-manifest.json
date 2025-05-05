@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/BetCastVisualisation/static/css/main.66fcc42f.css",
-    "main.js": "/BetCastVisualisation/static/js/main.786cf1a8.js",
+    "main.css": "/BetCastVisualisation/static/css/main.496fa910.css",
+    "main.js": "/BetCastVisualisation/static/js/main.b9a28f1f.js",
     "static/js/453.a1e6476c.chunk.js": "/BetCastVisualisation/static/js/453.a1e6476c.chunk.js",
     "index.html": "/BetCastVisualisation/index.html",
-    "main.66fcc42f.css.map": "/BetCastVisualisation/static/css/main.66fcc42f.css.map",
-    "main.786cf1a8.js.map": "/BetCastVisualisation/static/js/main.786cf1a8.js.map",
+    "main.496fa910.css.map": "/BetCastVisualisation/static/css/main.496fa910.css.map",
+    "main.b9a28f1f.js.map": "/BetCastVisualisation/static/js/main.b9a28f1f.js.map",
     "453.a1e6476c.chunk.js.map": "/BetCastVisualisation/static/js/453.a1e6476c.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.66fcc42f.css",
-    "static/js/main.786cf1a8.js"
+    "static/css/main.496fa910.css",
+    "static/js/main.b9a28f1f.js"
   ]
 }
