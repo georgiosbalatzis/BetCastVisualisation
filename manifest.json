@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "BetCast",
+  "name": "BetCast F1Stories - Αναλυτικά Στατιστικά Στοιχημάτων",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,7 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#1e2438",
+  "background_color": "#1a1a2a",
+  "description": "Betting statistics visualization and analytics tool by F1 Stories"
 }
