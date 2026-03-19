@@ -10,6 +10,8 @@ const COLUMN_MAP = {
   'Εβδομάδα': 'week',
   'Ημερομηνίες': 'dateRange',
   'Στοίχημα #': 'betNumber',
+  'Τύπος Στοιχήματος': 'betType',
+  'Τυπος Στοιχηματος': 'betType',
   'Ποντάρισμα': 'stake',
   'Απόδοση': 'odds',
   'Αποτέλεσμα': 'result',
@@ -20,6 +22,7 @@ const COLUMN_MAP = {
   'Συνολικο ROI %': 'cumulativeROIRaw',
   // English fallbacks
   'Week': 'week', 'Date Range': 'dateRange', 'Stake': 'stake', 'odd': 'odds',
+  'Bet Type': 'betType',
   'Win / Lose': 'result', 'Profit / Loss': 'profitLoss',
   'Symbol (Win / Loss)': 'symbol', 'Cumulative Budget': 'cumulativeBudget',
 };
@@ -95,6 +98,7 @@ const normaliseRow = (raw, id) => {
   row.odds = safeNumber(row.odds);
   row.profitLoss = safeNumber(row.profitLoss);
   row.cumulativeBudget = safeNumber(row.cumulativeBudget);
+  row.betType = row.betType || '';
   if (row.betNumber != null && typeof row.betNumber === 'string') {
     // betNumber in your sheet is a description like "Lewis - Τοπ 3", keep as string
     row.betLabel = row.betNumber;
@@ -292,6 +296,7 @@ const fetchFreshData = async () => {
 // ===========================================================================
 export const generateSampleData = () => {
   const data = []; let budget = 100;
+  const betTypes = ['Single', 'Over/Under', 'Handicap', 'BTTS', '1X2'];
   for (let w = 1; w <= 8; w++) {
     const dr = `${(w - 1) * 7 + 1}-${w * 7}/5/2025`;
     for (let b = 1; b <= 5; b++) {
@@ -301,7 +306,8 @@ export const generateSampleData = () => {
       budget += pl;
       data.push({
         id: data.length + 1, week: w, dateRange: dr, betNumber: b,
-        betLabel: `Bet ${b}`, stake: 10, odds,
+        betLabel: `Bet ${b}`, betType: betTypes[Math.floor(Math.random() * betTypes.length)],
+        stake: 10, odds,
         result: win ? 'Win' : 'Lose',
         profitLoss: parseFloat(pl.toFixed(2)),
         symbol: win ? '✓' : '✗',
