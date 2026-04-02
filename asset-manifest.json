@@ -1,15 +1,19 @@
 {
   "files": {
-    "main.css": "/BetCastVisualisation/static/css/main.b1014cf6.css",
-    "main.js": "/BetCastVisualisation/static/js/main.d8a0477d.js",
-    "static/js/453.a1e6476c.chunk.js": "/BetCastVisualisation/static/js/453.a1e6476c.chunk.js",
-    "index.html": "/BetCastVisualisation/index.html",
-    "main.b1014cf6.css.map": "/BetCastVisualisation/static/css/main.b1014cf6.css.map",
-    "main.d8a0477d.js.map": "/BetCastVisualisation/static/js/main.d8a0477d.js.map",
-    "453.a1e6476c.chunk.js.map": "/BetCastVisualisation/static/js/453.a1e6476c.chunk.js.map"
+    "main.css": "./static/css/main.71ca1b50.css",
+    "main.js": "./static/js/main.dd32db73.js",
+    "static/js/660.d919cc16.chunk.js": "./static/js/660.d919cc16.chunk.js",
+    "static/js/453.a1e6476c.chunk.js": "./static/js/453.a1e6476c.chunk.js",
+    "static/js/69.743d8f76.chunk.js": "./static/js/69.743d8f76.chunk.js",
+    "index.html": "./index.html",
+    "main.71ca1b50.css.map": "./static/css/main.71ca1b50.css.map",
+    "main.dd32db73.js.map": "./static/js/main.dd32db73.js.map",
+    "660.d919cc16.chunk.js.map": "./static/js/660.d919cc16.chunk.js.map",
+    "453.a1e6476c.chunk.js.map": "./static/js/453.a1e6476c.chunk.js.map",
+    "69.743d8f76.chunk.js.map": "./static/js/69.743d8f76.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.b1014cf6.css",
-    "static/js/main.d8a0477d.js"
+    "static/css/main.71ca1b50.css",
+    "static/js/main.dd32db73.js"
   ]
 }
