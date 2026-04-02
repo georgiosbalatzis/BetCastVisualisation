@@ -189,6 +189,7 @@ const fetchCSV = async () => {
 const CACHE_KEY = 'betcast_data_cache';
 const CACHE_TS_KEY = 'betcast_data_cache_ts';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+let inFlightFreshDataPromise = null;
 
 const readCache = () => {
   try {
@@ -246,40 +247,48 @@ export const fetchBettingData = async (onBackgroundUpdate) => {
 };
 
 const fetchFreshData = async () => {
-  try {
-    const csvText = await fetchCSV();
-    const rawRows = await parseCSVText(csvText);
+  if (inFlightFreshDataPromise) return inFlightFreshDataPromise;
 
-    if (!rawRows.length) throw new Error('No data rows in CSV');
+  inFlightFreshDataPromise = (async () => {
+    try {
+      const csvText = await fetchCSV();
+      const rawRows = await parseCSVText(csvText);
 
-    // Normalise all rows
-    const allRows = rawRows.map((r, i) => normaliseRow(r, i + 1));
+      if (!rawRows.length) throw new Error('No data rows in CSV');
 
-    // CRITICAL: Filter out empty/placeholder rows
-    const data = allRows.filter(isRealBet);
+      // Normalise all rows
+      const allRows = rawRows.map((r, i) => normaliseRow(r, i + 1));
 
-    if (!data.length) throw new Error('No real bets found after filtering');
+      // CRITICAL: Filter out empty/placeholder rows
+      const data = allRows.filter(isRealBet);
 
-    // Re-assign sequential IDs after filtering
-    data.forEach((b, i) => { b.id = i + 1; });
+      if (!data.length) throw new Error('No real bets found after filtering');
 
-    // Assign bet numbers per week
-    assignBetNumbers(data);
+      // Re-assign sequential IDs after filtering
+      data.forEach((b, i) => { b.id = i + 1; });
 
-    // Cache
-    writeCache(data);
+      // Assign bet numbers per week
+      assignBetNumbers(data);
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Loaded ${data.length} real bets (filtered from ${allRows.length} rows)`);
-      console.log('First bet:', data[0]);
+      // Cache
+      writeCache(data);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Loaded ${data.length} real bets (filtered from ${allRows.length} rows)`);
+        console.log('First bet:', data[0]);
+      }
+
+      return data;
+    } catch (e) {
+      console.error('Failed to load:', e);
+      console.warn('Using sample data');
+      return generateSampleData();
+    } finally {
+      inFlightFreshDataPromise = null;
     }
+  })();
 
-    return data;
-  } catch (e) {
-    console.error('Failed to load:', e);
-    console.warn('Using sample data');
-    return generateSampleData();
-  }
+  return inFlightFreshDataPromise;
 };
 
 // ===========================================================================

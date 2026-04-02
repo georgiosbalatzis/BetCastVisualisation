@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import './App.css';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
-import BettingVisualizations from './components/BetCast';
 import ErrorBoundary from './components/ErrorBoundary';
+
+const BettingVisualizations = lazy(() => import('./components/BetCast'));
 
 const EMBED_PARAM = 'embed';
 const isTruthyParam = (value) => value != null && !['0', 'false', 'no', 'off'].includes(String(value).toLowerCase());
@@ -48,7 +49,9 @@ function AppContent({ embedded }) {
       )}
 
       <ErrorBoundary>
-        <BettingVisualizations embedded={embedded} />
+        <Suspense fallback={<VisualizationFallback embedded={embedded} />}>
+          <BettingVisualizations embedded={embedded} />
+        </Suspense>
       </ErrorBoundary>
 
       {!embedded && (
@@ -79,6 +82,22 @@ function AppContent({ embedded }) {
           </div>
         </footer>
       )}
+    </div>
+  );
+}
+
+function VisualizationFallback({ embedded }) {
+  return (
+    <div className={`main-content${embedded ? ' main-content--embedded' : ''}`}>
+      <div className="card mb-section">
+        <div className="skeleton" style={{ width: '10rem', height: '1.25rem', marginBottom: '1rem' }} />
+        <div className="stats-grid">
+          {[...Array(5)].map((_, index) => <div key={index} className="skeleton skeleton-stat" />)}
+        </div>
+      </div>
+      <div className="card mb-section">
+        <div className="skeleton skeleton-chart" />
+      </div>
     </div>
   );
 }

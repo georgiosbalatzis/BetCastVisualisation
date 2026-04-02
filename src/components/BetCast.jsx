@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, startTransition } from 'react';
 import {
   Line, Bar, PieChart, Pie, Cell, Sector, ReferenceDot,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -151,6 +151,7 @@ const BettingVisualizations = ({ embedded = false }) => {
   const chartRef = useRef(null); // #8 scroll target
   const shareRef = useRef(null); // #1 screenshot target
   const touchStartX = useRef(null); // #10 swipe
+  const lastPostedHeightRef = useRef(0);
 
   const { isDark: isDarkMode } = useTheme();
   const C = isDarkMode ? THEMES.dark : THEMES.light;
@@ -189,25 +190,47 @@ const BettingVisualizations = ({ embedded = false }) => {
   const hasData = filteredData.length > 0;
 
   // Data loading
-  const processData = useCallback((data) => { setBettingData(data); setLastFetched(getLastFetchedTimestamp()); }, []);
+  const processData = useCallback((data) => {
+    startTransition(() => {
+      setBettingData(data);
+      setLastFetched(getLastFetchedTimestamp());
+    });
+  }, []);
+  const refreshData = useCallback((shouldApply = () => true) => fetchBettingData((fresh) => {
+    if (shouldApply()) processData(fresh);
+  }).then((data) => {
+    if (shouldApply()) processData(data);
+    return data;
+  }), [processData]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try { setLoading(true); setError(null); const d = await fetchBettingData((f) => { if (!cancelled) processData(f); }); if (!cancelled) processData(d); }
+      try { setLoading(true); setError(null); await refreshData(() => !cancelled); }
       catch { if (!cancelled) setError('Αποτυχία φόρτωσης δεδομένων.'); }
       finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [processData]);
+  }, [refreshData]);
 
   // #13 — Auto-refresh interval
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchBettingData((fresh) => processData(fresh)).then(processData).catch(() => {});
-    }, AUTO_REFRESH_MS);
-    return () => clearInterval(interval);
-  }, [processData]);
+    const refreshIfVisible = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      refreshData().catch(() => {});
+    };
+
+    const interval = setInterval(refreshIfVisible, AUTO_REFRESH_MS);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshIfVisible();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshData]);
 
   // #2 — URL deep-linking: read on mount
   useEffect(() => {
@@ -241,12 +264,22 @@ const BettingVisualizations = ({ embedded = false }) => {
     return () => clearTimeout(timeout);
   }, [shareFeedback]);
 
-  const handleRetry = useCallback(() => { clearCache(); setError(null); setLoading(true); fetchBettingData().then(processData).catch(() => setError('Αποτυχία.')).finally(() => setLoading(false)); }, [processData]);
-  const handleChartWeekClick = useCallback((wn) => setHighlightedWeek((p) => p === wn ? null : wn), []);
+  const handleRetry = useCallback(() => { clearCache(); setError(null); setLoading(true); refreshData().catch(() => setError('Αποτυχία.')).finally(() => setLoading(false)); }, [refreshData]);
+  const handleChartWeekClick = useCallback((wn) => startTransition(() => setHighlightedWeek((p) => p === wn ? null : wn)), []);
+  const updateWeekFrom = useCallback((value) => startTransition(() => { setWeekFrom(value); setTablePage(0); }), []);
+  const updateWeekTo = useCallback((value) => startTransition(() => { setWeekTo(value); setTablePage(0); }), []);
+  const resetWeekRange = useCallback(() => startTransition(() => { setWeekFrom(null); setWeekTo(null); setTablePage(0); }), []);
+  const clearHighlightedWeek = useCallback(() => startTransition(() => setHighlightedWeek(null)), []);
+  const resetAllFilters = useCallback(() => startTransition(() => { setWeekFrom(null); setWeekTo(null); setHighlightedWeek(null); setTablePage(0); }), []);
+  const updateCompareWeekA = useCallback((value) => startTransition(() => setCmpWeekA(value)), []);
+  const updateCompareWeekB = useCallback((value) => startTransition(() => setCmpWeekB(value)), []);
 
   // #8 — Scroll to chart on tab change
   const changeViz = useCallback((id) => {
-    setSelectedViz(id); setTablePage(0);
+    startTransition(() => {
+      setSelectedViz(id);
+      setTablePage(0);
+    });
     if (!embedded) setTimeout(() => chartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   }, [embedded]);
 
@@ -266,7 +299,7 @@ const BettingVisualizations = ({ embedded = false }) => {
   const handleTabKey = useCallback((e) => { const btns = tabBarRef.current?.querySelectorAll('.tab-btn'); if (!btns?.length) return; const idx = Array.from(btns).findIndex((b) => b === document.activeElement); if (idx === -1) return; let n = idx; if (e.key === 'ArrowRight') { e.preventDefault(); n = (idx + 1) % btns.length; } else if (e.key === 'ArrowLeft') { e.preventDefault(); n = (idx - 1 + btns.length) % btns.length; } else return; btns[n].focus(); btns[n].click(); }, []);
 
   // Table sorting
-  const handleSort = useCallback((col) => { setSortCol((p) => { if (p === col) { setSortDir((d) => d === 'asc' ? 'desc' : 'asc'); return col; } setSortDir('asc'); return col; }); setTablePage(0); }, []);
+  const handleSort = useCallback((col) => { startTransition(() => { setSortCol((p) => { if (p === col) { setSortDir((d) => d === 'asc' ? 'desc' : 'asc'); return col; } setSortDir('asc'); return col; }); setTablePage(0); }); }, []);
   const sortedTable = useMemo(() => { const d = highlightedWeek != null ? filteredData.filter((b) => b.week === highlightedWeek) : [...filteredData]; d.sort((a, b) => { const va = a[sortCol], vb = b[sortCol]; if (typeof va === 'number' && typeof vb === 'number') return sortDir === 'asc' ? va - vb : vb - va; return sortDir === 'asc' ? String(va ?? '').localeCompare(String(vb ?? '')) : String(vb ?? '').localeCompare(String(va ?? '')); }); return d; }, [filteredData, highlightedWeek, sortCol, sortDir]);
   const paged = useMemo(() => sortedTable.slice(tablePage * ROWS_PP, (tablePage + 1) * ROWS_PP), [sortedTable, tablePage]);
   const totalPages = Math.ceil(sortedTable.length / ROWS_PP);
@@ -297,7 +330,10 @@ const BettingVisualizations = ({ embedded = false }) => {
 
     const postHeight = () => {
       const height = Math.ceil(mainContentRef.current?.getBoundingClientRect().height ?? 0);
-      if (height > 0) window.parent.postMessage({ type: EMBED_RESIZE_EVENT, height }, '*');
+      if (height > 0 && height !== lastPostedHeightRef.current) {
+        lastPostedHeightRef.current = height;
+        window.parent.postMessage({ type: EMBED_RESIZE_EVENT, height }, '*');
+      }
     };
 
     const postHeightSoon = () => window.requestAnimationFrame(postHeight);
@@ -341,7 +377,7 @@ const BettingVisualizations = ({ embedded = false }) => {
     const wA = filteredSummary.find((w) => w.week === cmpWeekA);
     const wB = filteredSummary.find((w) => w.week === cmpWeekB);
     const delta = (a, b) => { const d = a - b; return d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1); };
-    return (<div className="card mb-section"><h3 className="card-chart-title">Σύγκριση Εβδομάδων</h3><div className="filter-bar" style={{ justifyContent: 'center', marginBottom: '1rem' }}><select value={cmpWeekA ?? ''} onChange={(e) => setCmpWeekA(e.target.value ? Number(e.target.value) : null)}><option value="">Εβδ. A</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select><span>vs</span><select value={cmpWeekB ?? ''} onChange={(e) => setCmpWeekB(e.target.value ? Number(e.target.value) : null)}><option value="">Εβδ. B</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select></div>
+    return (<div className="card mb-section"><h3 className="card-chart-title">Σύγκριση Εβδομάδων</h3><div className="filter-bar" style={{ justifyContent: 'center', marginBottom: '1rem' }}><select value={cmpWeekA ?? ''} onChange={(e) => updateCompareWeekA(e.target.value ? Number(e.target.value) : null)}><option value="">Εβδ. A</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select><span>vs</span><select value={cmpWeekB ?? ''} onChange={(e) => updateCompareWeekB(e.target.value ? Number(e.target.value) : null)}><option value="">Εβδ. B</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select></div>
       {wA && wB ? (<div className="compare-grid"><div className="compare-col"><h4>Εβδ. {wA.week}</h4><p>P/L: <strong className={wA.totalProfitLoss >= 0 ? 'tt-win' : 'tt-lose'}>{wA.totalProfitLoss >= 0 ? '+' : ''}{wA.totalProfitLoss}€</strong></p><p>Win%: {(wA.winRate * 100).toFixed(0)}%</p><p>ROI: {wA.weeklyROI}%</p><p>{wA.wins}W / {wA.losses}L</p></div><div className="compare-delta"><p>Δ P/L: {delta(wA.totalProfitLoss, wB.totalProfitLoss)}€</p><p>Δ Win%: {delta(wA.winRate * 100, wB.winRate * 100)}%</p><p>Δ ROI: {delta(wA.weeklyROI, wB.weeklyROI)}%</p></div><div className="compare-col"><h4>Εβδ. {wB.week}</h4><p>P/L: <strong className={wB.totalProfitLoss >= 0 ? 'tt-win' : 'tt-lose'}>{wB.totalProfitLoss >= 0 ? '+' : ''}{wB.totalProfitLoss}€</strong></p><p>Win%: {(wB.winRate * 100).toFixed(0)}%</p><p>ROI: {wB.weeklyROI}%</p><p>{wB.wins}W / {wB.losses}L</p></div></div>) : <div className="empty-state"><p>Επιλέξτε δύο εβδομάδες για σύγκριση.</p></div>}
     </div>);
   };
@@ -404,14 +440,14 @@ const BettingVisualizations = ({ embedded = false }) => {
         <div className="flex-between">
           <h2 className="card-title" style={{ marginBottom: 0 }}>Γραφήματα</h2>
           <div className="filter-bar">
-            <select value={weekFrom ?? ''} onChange={(e) => { setWeekFrom(e.target.value ? Number(e.target.value) : null); setTablePage(0); }}><option value="">Από</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select>
+            <select value={weekFrom ?? ''} onChange={(e) => updateWeekFrom(e.target.value ? Number(e.target.value) : null)}><option value="">Από</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select>
             <span>—</span>
-            <select value={weekTo ?? ''} onChange={(e) => { setWeekTo(e.target.value ? Number(e.target.value) : null); setTablePage(0); }}><option value="">Έως</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select>
-            {(weekFrom != null || weekTo != null) && <button className="filter-reset-btn" onClick={() => { setWeekFrom(null); setWeekTo(null); setTablePage(0); }}>✕</button>}
+            <select value={weekTo ?? ''} onChange={(e) => updateWeekTo(e.target.value ? Number(e.target.value) : null)}><option value="">Έως</option>{allWeeks.map((w) => <option key={w} value={w}>{w}</option>)}</select>
+            {(weekFrom != null || weekTo != null) && <button className="filter-reset-btn" onClick={resetWeekRange}>✕</button>}
             {fullscreen && <button className="filter-reset-btn" onClick={() => setFullscreen(false)}>✕ Fullscreen</button>}
           </div>
         </div>
-        {highlightedWeek != null && <div style={{ marginTop: '0.5rem' }}><span className="week-highlight-notice">Εβδ. {highlightedWeek}<button onClick={() => setHighlightedWeek(null)}>✕</button></span></div>}
+        {highlightedWeek != null && <div style={{ marginTop: '0.5rem' }}><span className="week-highlight-notice">Εβδ. {highlightedWeek}<button onClick={clearHighlightedWeek}>✕</button></span></div>}
         <div className="tab-bar" style={{ marginTop: '0.75rem' }} ref={tabBarRef} role="tablist" onKeyDown={handleTabKey}>
           {VIZ_OPTIONS.map((item) => (
             <button key={item.id} role="tab" tabIndex={selectedViz === item.id ? 0 : -1} aria-selected={selectedViz === item.id}
@@ -426,7 +462,7 @@ const BettingVisualizations = ({ embedded = false }) => {
       {/* Chart area with swipe + fullscreen + scroll anchor */}
       <div ref={chartRef} className={fullscreen ? 'fullscreen-overlay' : ''} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {fullscreen && <button className="fullscreen-close" onClick={() => setFullscreen(false)}>✕</button>}
-        {!hasData ? <div className="card mb-section"><div className="empty-state"><p>Δεν βρέθηκαν στοιχήματα.</p><button className="filter-reset-btn" onClick={() => { setWeekFrom(null); setWeekTo(null); setHighlightedWeek(null); }}>Reset</button></div></div> : RENDERERS[selectedViz]?.()}
+        {!hasData ? <div className="card mb-section"><div className="empty-state"><p>Δεν βρέθηκαν στοιχήματα.</p><button className="filter-reset-btn" onClick={resetAllFilters}>Reset</button></div></div> : RENDERERS[selectedViz]?.()}
       </div>
     </div>
   );
