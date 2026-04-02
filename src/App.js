@@ -3,7 +3,26 @@ import './App.css';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
-const BettingVisualizations = lazy(() => import('./components/BetCast'));
+const lazyWithRetry = (importer, key) => lazy(async () => {
+  try {
+    const module = await importer();
+    try { sessionStorage.removeItem(key); } catch {}
+    return module;
+  } catch (error) {
+    console.error(`Failed to load lazy chunk: ${key}`, error);
+    try {
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1');
+        window.location.reload();
+        return new Promise(() => {});
+      }
+      sessionStorage.removeItem(key);
+    } catch {}
+    throw error;
+  }
+});
+
+const BettingVisualizations = lazyWithRetry(() => import('./components/BetCast'), 'betcast_chunk_retry');
 
 const EMBED_PARAM = 'embed';
 const isTruthyParam = (value) => value != null && !['0', 'false', 'no', 'off'].includes(String(value).toLowerCase());
