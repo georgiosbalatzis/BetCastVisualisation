@@ -42,16 +42,7 @@ export const safeNumber = (v) => { const n = toNumber(v); return isNaN(n) ? 0 : 
 // CSV Parsing
 // ===========================================================================
 const parseCSVText = async (csvText) => {
-  try {
-    const Papa = await import('papaparse');
-    const r = Papa.default.parse(csvText, {
-      header: true, skipEmptyLines: true, dynamicTyping: false,
-      transformHeader: (h) => h.trim(),
-    });
-    return r.data;
-  } catch {
-    return fallbackParseCSV(csvText);
-  }
+  return fallbackParseCSV(csvText);
 };
 
 const fallbackParseCSV = (csvText) => {

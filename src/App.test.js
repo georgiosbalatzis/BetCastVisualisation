@@ -1,8 +1,25 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+jest.mock('./components/BetCast', () => () => <div>BetCast content</div>);
+
+beforeEach(() => {
+  window.history.replaceState(null, '', '/');
+});
+
+test('renders the full application chrome by default', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByRole('banner')).toBeInTheDocument();
+  expect(screen.getByText(/BetCast F1Stories/i)).toBeInTheDocument();
+  expect(screen.getByText('BetCast content')).toBeInTheDocument();
+});
+
+test('hides the outer chrome in embed mode', () => {
+  window.history.replaceState(null, '', '/?embed=1');
+
+  render(<App />);
+
+  expect(screen.queryByRole('banner')).not.toBeInTheDocument();
+  expect(screen.queryByText(/Powered by Georgios Balatzis/i)).not.toBeInTheDocument();
+  expect(screen.getByText('BetCast content')).toBeInTheDocument();
 });

@@ -1,3 +1,24 @@
+# BetCast Visualization
+
+## Embedding
+
+The dashboard now supports an embed mode that keeps the selected chart and filters in the URL.
+
+- Add `?embed=1` to switch to the compact embedded layout.
+- Existing deep-link params such as `viz`, `from`, `to`, `week`, `cmpA`, and `cmpB` are preserved in embed URLs.
+- The app posts `{ type: 'betcast:resize', height }` to the parent window so a host page can resize the iframe dynamically.
+
+Example:
+
+```html
+<iframe
+  src="https://georgiosbalatzis.github.io/BetCastVisualisation/?embed=1&viz=budget"
+  title="BetCast F1Stories"
+  loading="lazy"
+  style="width:100%;min-height:960px;border:0;"
+></iframe>
+```
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

@@ -13,7 +13,7 @@ const STORAGE_KEY = 'betcast_theme';
 
 /** Read the OS / browser preference */
 const getSystemPrefersDark = () =>
-  window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
+  window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? true;
 
 /** Read saved preference from localStorage, default to 'auto' */
 const getSavedMode = () => {
@@ -22,13 +22,6 @@ const getSavedMode = () => {
     if (saved === 'dark' || saved === 'light' || saved === 'auto') return saved;
   } catch { /* localStorage unavailable */ }
   return 'auto';
-};
-
-/** Resolve mode + system preference into a boolean */
-const resolveIsDark = (mode) => {
-  if (mode === 'dark') return true;
-  if (mode === 'light') return false;
-  return getSystemPrefersDark(); // 'auto'
 };
 
 /** Apply the correct class to <body> */

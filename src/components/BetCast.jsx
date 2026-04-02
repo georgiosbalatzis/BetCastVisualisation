@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-  Line, Bar, PieChart, Pie, Cell, Sector, ReferenceDot, ScatterChart, Scatter as ScatterDot,
+  Line, Bar, PieChart, Pie, Cell, Sector, ReferenceDot,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, ComposedChart, BarChart, Area,
 } from 'recharts';
@@ -37,7 +37,8 @@ const exportCSV = (data, fn = 'betcast_export.csv') => { const h = ['#', 'Εβδ
 // #1 — Screenshot/share
 const shareScreenshot = async (ref) => {
   try {
-    const { default: html2canvas } = await import('html2canvas');
+    const html2canvas = window.html2canvas;
+    if (typeof html2canvas !== 'function') throw new Error('html2canvas unavailable');
     const canvas = await html2canvas(ref, { backgroundColor: null, scale: 2 });
     canvas.toBlob(async (blob) => {
       if (navigator.share && navigator.canShare?.({ files: [new File([blob], 'betcast.png', { type: 'image/png' })] })) {
@@ -46,7 +47,7 @@ const shareScreenshot = async (ref) => {
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'betcast_stats.png'; a.click();
       }
     }, 'image/png');
-  } catch { alert('Screenshot not available. Try installing: npm install html2canvas'); }
+  } catch { alert('Screenshot is not available in this build.'); }
 };
 
 // Viz options
@@ -76,13 +77,61 @@ const TABLE_COLS = [
 ];
 const ROWS_PP = 15;
 const AUTO_REFRESH_MS = 3 * 60 * 1000; // #13 — 3 min
+const EMBED_PARAM = 'embed';
+const EMBED_MIN_HEIGHT = 960;
+const EMBED_RESIZE_EVENT = 'betcast:resize';
+const EMBED_TITLE = 'BetCast F1Stories';
+
+const getNumericParam = (params, key) => {
+  const value = params.get(key);
+  if (value == null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const buildShareUrl = ({ selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded = false }) => {
+  if (typeof window === 'undefined') return '';
+  const params = new URLSearchParams();
+  if (selectedViz !== 'budget') params.set('viz', selectedViz);
+  if (weekFrom != null) params.set('from', String(weekFrom));
+  if (weekTo != null) params.set('to', String(weekTo));
+  if (highlightedWeek != null) params.set('week', String(highlightedWeek));
+  if (cmpWeekA != null) params.set('cmpA', String(cmpWeekA));
+  if (cmpWeekB != null) params.set('cmpB', String(cmpWeekB));
+  if (embedded) params.set(EMBED_PARAM, '1');
+  const queryString = params.toString();
+  return `${window.location.origin}${window.location.pathname}${queryString ? `?${queryString}` : ''}`;
+};
+
+const buildEmbedSnippet = (embedUrl) => `<iframe src="${embedUrl}" title="${EMBED_TITLE}" loading="lazy" style="width:100%;min-height:${EMBED_MIN_HEIGHT}px;border:0;"></iframe>`;
+
+const copyText = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return copied;
+    } catch {
+      return false;
+    }
+  }
+};
 
 // ============================================================================
-const BettingVisualizations = () => {
+const BettingVisualizations = ({ embedded = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bettingData, setBettingData] = useState([]);
-  const [summaryData, setSummaryData] = useState([]);
   const [selectedViz, setSelectedViz] = useState('budget');
   const [activeIndex, setActiveIndex] = useState(0);
   const [weekFrom, setWeekFrom] = useState(null);
@@ -95,7 +144,9 @@ const BettingVisualizations = () => {
   const [fullscreen, setFullscreen] = useState(false); // #9
   const [cmpWeekA, setCmpWeekA] = useState(null); // #11
   const [cmpWeekB, setCmpWeekB] = useState(null);
+  const [shareFeedback, setShareFeedback] = useState('');
 
+  const mainContentRef = useRef(null);
   const tabBarRef = useRef(null);
   const chartRef = useRef(null); // #8 scroll target
   const shareRef = useRef(null); // #1 screenshot target
@@ -138,7 +189,7 @@ const BettingVisualizations = () => {
   const hasData = filteredData.length > 0;
 
   // Data loading
-  const processData = useCallback((data) => { setBettingData(data); setSummaryData(calculateWeeklySummary(data)); setLastFetched(getLastFetchedTimestamp()); }, []);
+  const processData = useCallback((data) => { setBettingData(data); setLastFetched(getLastFetchedTimestamp()); }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,22 +212,34 @@ const BettingVisualizations = () => {
   // #2 — URL deep-linking: read on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('viz')) setSelectedViz(params.get('viz'));
-    if (params.get('from')) setWeekFrom(Number(params.get('from')));
-    if (params.get('to')) setWeekTo(Number(params.get('to')));
-    if (params.get('week')) setHighlightedWeek(Number(params.get('week')));
+    const requestedViz = params.get('viz');
+    if (requestedViz && VIZ_OPTIONS.some((option) => option.id === requestedViz)) setSelectedViz(requestedViz);
+    setWeekFrom(getNumericParam(params, 'from'));
+    setWeekTo(getNumericParam(params, 'to'));
+    setHighlightedWeek(getNumericParam(params, 'week'));
+    setCmpWeekA(getNumericParam(params, 'cmpA'));
+    setCmpWeekB(getNumericParam(params, 'cmpB'));
   }, []);
 
   // #2 — URL deep-linking: write on state change
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedViz !== 'budget') params.set('viz', selectedViz);
-    if (weekFrom != null) params.set('from', weekFrom);
-    if (weekTo != null) params.set('to', weekTo);
-    if (highlightedWeek != null) params.set('week', highlightedWeek);
-    const str = params.toString();
-    window.history.replaceState(null, '', str ? `?${str}` : window.location.pathname);
-  }, [selectedViz, weekFrom, weekTo, highlightedWeek]);
+    if (weekFrom != null) params.set('from', String(weekFrom));
+    if (weekTo != null) params.set('to', String(weekTo));
+    if (highlightedWeek != null) params.set('week', String(highlightedWeek));
+    if (cmpWeekA != null) params.set('cmpA', String(cmpWeekA));
+    if (cmpWeekB != null) params.set('cmpB', String(cmpWeekB));
+    if (embedded) params.set(EMBED_PARAM, '1');
+    const queryString = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${queryString ? `?${queryString}` : ''}`);
+  }, [selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded]);
+
+  useEffect(() => {
+    if (!shareFeedback) return undefined;
+    const timeout = setTimeout(() => setShareFeedback(''), 2400);
+    return () => clearTimeout(timeout);
+  }, [shareFeedback]);
 
   const handleRetry = useCallback(() => { clearCache(); setError(null); setLoading(true); fetchBettingData().then(processData).catch(() => setError('Αποτυχία.')).finally(() => setLoading(false)); }, [processData]);
   const handleChartWeekClick = useCallback((wn) => setHighlightedWeek((p) => p === wn ? null : wn), []);
@@ -184,8 +247,8 @@ const BettingVisualizations = () => {
   // #8 — Scroll to chart on tab change
   const changeViz = useCallback((id) => {
     setSelectedViz(id); setTablePage(0);
-    setTimeout(() => chartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-  }, []);
+    if (!embedded) setTimeout(() => chartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }, [embedded]);
 
   // #10 — Swipe gestures
   const onTouchStart = useCallback((e) => { touchStartX.current = e.touches[0].clientX; }, []);
@@ -214,6 +277,37 @@ const BettingVisualizations = () => {
 
   // Last updated
   const lastUpdated = useMemo(() => { if (!lastFetched) return null; const m = Math.floor((Date.now() - lastFetched) / 60000); if (m < 1) return 'μόλις τώρα'; return `πριν ${m} λεπτά`; }, [lastFetched]);
+  const shareContext = useMemo(() => ({ selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB }), [selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB]);
+  const fullAppUrl = useMemo(() => buildShareUrl({ ...shareContext, embedded: false }), [shareContext]);
+  const embedUrl = useMemo(() => buildShareUrl({ ...shareContext, embedded: true }), [shareContext]);
+  const embedSnippet = useMemo(() => buildEmbedSnippet(embedUrl), [embedUrl]);
+
+  const handleCopyLink = useCallback(async () => {
+    const copied = await copyText(fullAppUrl);
+    setShareFeedback(copied ? 'Το link αντιγράφηκε.' : 'Δεν ήταν δυνατή η αντιγραφή του link.');
+  }, [fullAppUrl]);
+
+  const handleCopyEmbed = useCallback(async () => {
+    const copied = await copyText(embedSnippet);
+    setShareFeedback(copied ? 'Το iframe code αντιγράφηκε.' : 'Δεν ήταν δυνατή η αντιγραφή του iframe code.');
+  }, [embedSnippet]);
+
+  useEffect(() => {
+    if (!embedded || window.parent === window || !mainContentRef.current) return undefined;
+
+    const postHeight = () => {
+      const height = Math.ceil(mainContentRef.current?.getBoundingClientRect().height ?? 0);
+      if (height > 0) window.parent.postMessage({ type: EMBED_RESIZE_EVENT, height }, '*');
+    };
+
+    const postHeightSoon = () => window.requestAnimationFrame(postHeight);
+    postHeightSoon();
+
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(postHeightSoon);
+    observer.observe(mainContentRef.current);
+    return () => observer.disconnect();
+  }, [embedded, loading, error, selectedViz, tablePage, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, hasData]);
 
   // =========================================================================
   // Chart renderers
@@ -258,7 +352,7 @@ const BettingVisualizations = () => {
   const RENDERERS = { budget: R_budget, weeklyProfit: R_weeklyProfit, winLossRatio: R_winLoss, oddsDistribution: R_oddsDist, profitByOdds: R_profitByOdds, evTracking: R_ev, kelly: R_kelly, betSize: R_betSize, winRateByWeek: R_winRate, weeklyROI: R_weeklyROI, cumulativeROI: R_cumROI, compareWeeks: R_compare, dataTable: R_table };
 
   // Loading
-  if (loading) return (<div className="main-content"><h1 className="page-title">Αναλυτικά Στατιστικά Στοιχημάτων</h1><div className="card mb-section"><div className="skeleton" style={{ width: '10rem', height: '1.25rem', marginBottom: '1rem' }} /><div className="stats-grid">{[...Array(5)].map((_, i) => <div key={i} className="skeleton skeleton-stat" />)}</div></div><div className="card mb-section"><div className="skeleton skeleton-chart" /></div></div>);
+  if (loading) return (<div className={`main-content${embedded ? ' main-content--embedded' : ''}`}><h1 className="page-title">Αναλυτικά Στατιστικά Στοιχημάτων</h1><div className="card mb-section"><div className="skeleton" style={{ width: '10rem', height: '1.25rem', marginBottom: '1rem' }} /><div className="stats-grid">{[...Array(5)].map((_, i) => <div key={i} className="skeleton skeleton-stat" />)}</div></div><div className="card mb-section"><div className="skeleton skeleton-chart" /></div></div>);
 
   // Render
   const chartContent = (
@@ -286,11 +380,20 @@ const BettingVisualizations = () => {
   );
 
   return (
-    <div className="main-content">
-      <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-        <h1 className="page-title" style={{ marginBottom: 0 }}>BetCast Στατιστικά</h1>
-        {lastUpdated && <span className="last-updated">🔄 {lastUpdated}</span>}
+    <div ref={mainContentRef} className={`main-content${embedded ? ' main-content--embedded' : ''}`}>
+      <div className="page-toolbar">
+        <div className="page-toolbar__heading">
+          {embedded && <p className="embed-eyebrow">Embed View</p>}
+          <h1 className="page-title page-title--inline">BetCast Στατιστικά</h1>
+        </div>
+        <div className="page-toolbar__actions">
+          {lastUpdated && <span className="last-updated">🔄 {lastUpdated}</span>}
+          {!embedded && <button className="export-btn" onClick={handleCopyLink}>🔗 Link</button>}
+          {!embedded && <button className="export-btn" onClick={handleCopyEmbed}>{"</> Embed"}</button>}
+          {embedded && <a className="export-btn" href={fullAppUrl} target="_blank" rel="noopener noreferrer">↗ Full App</a>}
+        </div>
       </div>
+      {shareFeedback && <p className="share-feedback">{shareFeedback}</p>}
 
       {error && <div className="error-banner"><strong>Σφάλμα</strong><p>{error}</p><button className="filter-reset-btn" onClick={handleRetry} style={{ marginTop: '0.5rem' }}>Επανάληψη</button></div>}
 
