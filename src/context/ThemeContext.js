@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useLayoutEffect, useCallback } from 'react';
 
 /**
  * Theme mode can be 'dark', 'light', or 'auto' (follows OS preference).
@@ -37,7 +37,7 @@ const applyBodyClass = (isDark) => {
 const ThemeContext = createContext({
   mode: 'auto',       // 'dark' | 'light' | 'auto'
   isDark: true,        // resolved boolean
-  toggle: () => {},    // cycle: auto → dark → light → auto
+  toggle: () => {},    // flip from current resolved theme
   setMode: () => {},   // set explicitly
 });
 
@@ -53,11 +53,15 @@ export const ThemeProvider = ({ children }) => {
 
   const isDark = mode === 'auto' ? systemDark : mode === 'dark';
 
-  // ---- Persist + apply on change ----
+  // ---- Apply before paint so the initial theme matches the OS/user preference ----
+  useLayoutEffect(() => {
+    applyBodyClass(isDark);
+  }, [isDark]);
+
+  // ---- Persist preference ----
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, mode); } catch {}
-    applyBodyClass(isDark);
-  }, [mode, isDark]);
+  }, [mode]);
 
   // ---- Listen for OS preference changes ----
   useEffect(() => {
@@ -69,14 +73,14 @@ export const ThemeProvider = ({ children }) => {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // ---- Toggle cycles: auto → dark → light → auto ----
+  // ---- Toggle from the currently resolved theme ----
   const toggle = useCallback(() => {
     setModeState((prev) => {
-      if (prev === 'auto') return 'dark';
+      if (prev === 'auto') return systemDark ? 'light' : 'dark';
       if (prev === 'dark') return 'light';
-      return 'auto';
+      return 'dark';
     });
-  }, []);
+  }, [systemDark]);
 
   const setMode = useCallback((m) => {
     if (m === 'dark' || m === 'light' || m === 'auto') setModeState(m);

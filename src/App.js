@@ -35,11 +35,16 @@ const getEmbedMode = () => {
 };
 
 // Theme toggle
-const MODE_DISPLAY = { auto: { icon: '◐', label: 'Auto', next: 'Dark' }, dark: { icon: '🌙', label: 'Dark', next: 'Light' }, light: { icon: '☀️', label: 'Light', next: 'Auto' } };
+const MODE_DISPLAY = {
+  dark: { icon: '🌙', label: 'Dark', next: 'Light' },
+  light: { icon: '☀️', label: 'Light', next: 'Dark' },
+};
 function ThemeToggle() {
-  const { mode, toggle } = useTheme();
-  const { icon, label } = MODE_DISPLAY[mode] || MODE_DISPLAY.auto;
-  return (<button className="theme-toggle" onClick={toggle} aria-label={`Theme: ${label}`} title={`→ ${MODE_DISPLAY[mode]?.next}`}><span className="theme-toggle__icon">{icon}</span><span className="theme-toggle__label">{label}</span></button>);
+  const { mode, isDark, toggle } = useTheme();
+  const activeMode = mode === 'auto' ? (isDark ? 'dark' : 'light') : mode;
+  const { icon, label, next } = MODE_DISPLAY[activeMode] || MODE_DISPLAY.light;
+  const title = mode === 'auto' ? `Following system • → ${next}` : `→ ${next}`;
+  return (<button className="theme-toggle" onClick={toggle} aria-label={`Theme: ${label}`} title={title}><span className="theme-toggle__icon">{icon}</span><span className="theme-toggle__label">{label}</span></button>);
 }
 
 // #14 — Inline SVG social icons (eliminates 82KB Font Awesome dependency)

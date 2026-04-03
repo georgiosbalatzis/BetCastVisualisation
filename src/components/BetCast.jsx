@@ -27,12 +27,12 @@ const BOOKMAKER_ALIASES = {
   novibet: 'novibet',
 };
 
-const BOOKMAKER_META = {
-  stoiximan: { label: 'Stoiximan', mark: 'S' },
-  interwetten: { label: 'Interwetten', mark: 'IW' },
-  bwin: { label: 'bwin', mark: 'b' },
-  bet365: { label: 'bet365', mark: '365' },
-  novibet: { label: 'Novibet', mark: 'N' },
+const BOOKMAKER_LOGOS = {
+  stoiximan: { label: 'Stoiximan', src: `${process.env.PUBLIC_URL}/bookmakers/stoiximan.svg` },
+  interwetten: { label: 'Interwetten', src: `${process.env.PUBLIC_URL}/bookmakers/interwetten.svg` },
+  bwin: { label: 'bwin', src: `${process.env.PUBLIC_URL}/bookmakers/bwin.svg` },
+  bet365: { label: 'bet365', src: `${process.env.PUBLIC_URL}/bookmakers/bet365.svg` },
+  novibet: { label: 'Novibet', src: `${process.env.PUBLIC_URL}/bookmakers/novibet.svg` },
 };
 
 const normaliseBookmaker = (value) => {
@@ -44,33 +44,12 @@ const normaliseBookmaker = (value) => {
 };
 
 const BookmakerLogo = ({ company }) => {
-  if (!company) return <span className="bookmaker-logo bookmaker-logo--unknown">—</span>;
   const key = normaliseBookmaker(company);
-  if (!key) return <span className="bookmaker-logo bookmaker-logo--unknown">{company}</span>;
-  const meta = BOOKMAKER_META[key];
-
-  if (key === 'bet365') {
-    return (
-      <span className={`bookmaker-logo bookmaker-logo--${key}`} title={meta.label} aria-label={meta.label}>
-        <span className="bookmaker-logo__word">bet</span>
-        <span className="bookmaker-logo__accent">365</span>
-      </span>
-    );
-  }
-
-  if (key === 'bwin') {
-    return (
-      <span className={`bookmaker-logo bookmaker-logo--${key}`} title={meta.label} aria-label={meta.label}>
-        <span className="bookmaker-logo__word">{meta.label}</span>
-        <span className="bookmaker-logo__dot" aria-hidden="true" />
-      </span>
-    );
-  }
-
+  const logo = key ? BOOKMAKER_LOGOS[key] : null;
+  if (!logo) return <span className="bookmaker-logo bookmaker-logo--unknown">{company || '—'}</span>;
   return (
-    <span className={`bookmaker-logo bookmaker-logo--${key}`} title={meta.label} aria-label={meta.label}>
-      <span className="bookmaker-logo__mark" aria-hidden="true">{meta.mark}</span>
-      <span className="bookmaker-logo__word">{meta.label}</span>
+    <span className={`bookmaker-logo bookmaker-logo--asset bookmaker-logo--${key}`} title={logo.label} aria-label={logo.label}>
+      <img className="bookmaker-logo__image" src={logo.src} alt={logo.label} loading="lazy" />
     </span>
   );
 };
