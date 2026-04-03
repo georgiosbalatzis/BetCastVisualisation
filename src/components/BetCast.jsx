@@ -18,6 +18,63 @@ const THEMES = {
   light: { win: '#00695c', lose: '#c62828', neutral: '#5c6bc0', profit: '#00695c', loss: '#c62828', budgetLine: '#3949ab', darkGray: '#455a64', labelColor: '#333333', detailColor: '#999999', referenceLine: '#ff7300', rolling: '#e65100', milestone: '#7b1fa2' },
 };
 
+const BOOKMAKER_ALIASES = {
+  stoiximan: 'stoiximan',
+  interwetten: 'interwetten',
+  intervetten: 'interwetten',
+  bwin: 'bwin',
+  bet365: 'bet365',
+  novibet: 'novibet',
+};
+
+const BOOKMAKER_META = {
+  stoiximan: { label: 'Stoiximan', mark: 'S' },
+  interwetten: { label: 'Interwetten', mark: 'IW' },
+  bwin: { label: 'bwin', mark: 'b' },
+  bet365: { label: 'bet365', mark: '365' },
+  novibet: { label: 'Novibet', mark: 'N' },
+};
+
+const normaliseBookmaker = (value) => {
+  if (value == null) return '';
+  const trimmed = String(value).trim();
+  if (!trimmed) return '';
+  const compact = trimmed.toLowerCase().replace(/\s+/g, '');
+  return BOOKMAKER_ALIASES[compact] || '';
+};
+
+const BookmakerLogo = ({ company }) => {
+  if (!company) return <span className="bookmaker-logo bookmaker-logo--unknown">—</span>;
+  const key = normaliseBookmaker(company);
+  if (!key) return <span className="bookmaker-logo bookmaker-logo--unknown">{company}</span>;
+  const meta = BOOKMAKER_META[key];
+
+  if (key === 'bet365') {
+    return (
+      <span className={`bookmaker-logo bookmaker-logo--${key}`} title={meta.label} aria-label={meta.label}>
+        <span className="bookmaker-logo__word">bet</span>
+        <span className="bookmaker-logo__accent">365</span>
+      </span>
+    );
+  }
+
+  if (key === 'bwin') {
+    return (
+      <span className={`bookmaker-logo bookmaker-logo--${key}`} title={meta.label} aria-label={meta.label}>
+        <span className="bookmaker-logo__word">{meta.label}</span>
+        <span className="bookmaker-logo__dot" aria-hidden="true" />
+      </span>
+    );
+  }
+
+  return (
+    <span className={`bookmaker-logo bookmaker-logo--${key}`} title={meta.label} aria-label={meta.label}>
+      <span className="bookmaker-logo__mark" aria-hidden="true">{meta.mark}</span>
+      <span className="bookmaker-logo__word">{meta.label}</span>
+    </span>
+  );
+};
+
 // Chart builders
 const buildBudgetData = (d) => d.map((x) => ({ id: x.id, value: safeNumber(x.cumulativeBudget), result: x.result, week: x.week, odds: safeNumber(x.odds), profitLoss: safeNumber(x.profitLoss) }));
 const buildWkProfitData = (s) => s.map((w) => ({ week: `Εβδ. ${w.week}`, weekNum: w.week, profit: w.totalProfitLoss, budget: w.cumulativeBudget, dateRange: w.dateRange }));
@@ -32,7 +89,7 @@ const BudgetTT = ({ active, payload, label }) => { if (!active || !payload?.leng
 const WeeklyTT = ({ active, payload }) => { if (!active || !payload?.length) return null; const d = payload[0]?.payload; return (<div className="custom-tooltip"><p className="custom-tooltip__title">{d?.week}</p>{d?.dateRange && <p className="custom-tooltip__sub">{d.dateRange}</p>}{payload.map((p, i) => <p key={i}>{p.name}: <strong>{typeof p.value === 'number' ? `${p.value.toFixed?.(2) ?? p.value}${p.name.includes('%') || p.name.includes('ROI') ? '%' : '€'}` : p.value}</strong></p>)}</div>); };
 
 // CSV export — includes betType column
-const exportCSV = (data, fn = 'betcast_export.csv') => { const h = ['#', 'Εβδ', 'Στοίχ', 'Τύπος', 'Odds', 'Stake', 'Result', 'P/L', 'Budget']; const r = data.map((b) => [b.id, b.week, b.betNumber, b.betType || '', safeNumber(b.odds).toFixed(2), safeNumber(b.stake).toFixed(2), b.result, safeNumber(b.profitLoss).toFixed(2), safeNumber(b.cumulativeBudget).toFixed(2)]); const csv = [h.join(','), ...r.map((x) => x.join(','))].join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fn; a.click(); };
+const exportCSV = (data, fn = 'betcast_export.csv') => { const h = ['#', 'Εβδ', 'Στοίχ', 'Τύπος', 'Εταιρία', 'Odds', 'Stake', 'Result', 'P/L', 'Budget']; const r = data.map((b) => [b.id, b.week, b.betNumber, b.betType || '', b.company || '', safeNumber(b.odds).toFixed(2), safeNumber(b.stake).toFixed(2), b.result, safeNumber(b.profitLoss).toFixed(2), safeNumber(b.cumulativeBudget).toFixed(2)]); const csv = [h.join(','), ...r.map((x) => x.join(','))].join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fn; a.click(); };
 
 // #1 — Screenshot/share
 const shareScreenshot = async (ref) => {
@@ -71,6 +128,7 @@ const TABLE_COLS = [
   { key: 'id', label: '#', align: 'center' }, { key: 'week', label: 'Εβδ.', align: 'center' },
   { key: 'betNumber', label: 'Στ.', align: 'center' },
   { key: 'betType', label: 'Τύπος Στοιχήματος', align: 'left' },
+  { key: 'company', label: 'Εταιρία', align: 'center' },
   { key: 'odds', label: 'Odds', align: 'right' },
   { key: 'stake', label: 'Stake', align: 'right' }, { key: 'result', label: 'Res.', align: 'center' },
   { key: 'profitLoss', label: 'P/L', align: 'right' }, { key: 'cumulativeBudget', label: 'Budget', align: 'right' },
@@ -383,7 +441,7 @@ const BettingVisualizations = ({ embedded = false }) => {
   };
 
   // Data table — now includes betType column
-  const R_table = () => (<div className="card mb-section"><div className="flex-between" style={{ marginBottom: '0.75rem' }}><h3 className="card-chart-title" style={{ marginBottom: 0 }}>Πίνακας</h3><button className="export-btn" onClick={() => exportCSV(sortedTable)}>⬇ CSV</button></div><div className="data-table-wrap"><table className="data-table"><thead><tr>{TABLE_COLS.map((c) => <th key={c.key} style={{ textAlign: c.align }} onClick={() => handleSort(c.key)}>{c.label}<span className={`sort-arrow ${sortCol === c.key ? 'sort-arrow--active' : ''}`}>{sortCol === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}</span></th>)}</tr></thead><tbody>{paged.length === 0 ? <tr><td colSpan={9} className="empty-state">Κανένα στοίχημα</td></tr> : paged.map((b) => (<tr key={b.id} className={highlightedWeek != null && b.week === highlightedWeek ? 'row-highlight' : ''}><td style={{ textAlign: 'center' }}>{b.id}</td><td style={{ textAlign: 'center' }}>{b.week}</td><td style={{ textAlign: 'center' }}>{b.betNumber}</td><td style={{ textAlign: 'left' }}>{b.betType || '—'}</td><td style={{ textAlign: 'right' }}>{safeNumber(b.odds).toFixed(2)}</td><td style={{ textAlign: 'right' }}>{safeNumber(b.stake).toFixed(2)}€</td><td style={{ textAlign: 'center' }} className={b.result === 'Win' ? 'cell-win' : 'cell-lose'}>{b.result === 'Win' ? '✓' : '✗'}</td><td style={{ textAlign: 'right' }} className={safeNumber(b.profitLoss) >= 0 ? 'cell-win' : 'cell-lose'}>{safeNumber(b.profitLoss) >= 0 ? '+' : ''}{safeNumber(b.profitLoss).toFixed(2)}€</td><td style={{ textAlign: 'right' }}>{safeNumber(b.cumulativeBudget).toFixed(2)}€</td></tr>))}</tbody></table></div>{totalPages > 1 && <div className="table-pagination"><button disabled={tablePage === 0} onClick={() => setTablePage((p) => p - 1)}>←</button><span>{tablePage + 1}/{totalPages}</span><button disabled={tablePage >= totalPages - 1} onClick={() => setTablePage((p) => p + 1)}>→</button></div>}</div>);
+  const R_table = () => (<div className="card mb-section"><div className="flex-between" style={{ marginBottom: '0.75rem' }}><h3 className="card-chart-title" style={{ marginBottom: 0 }}>Πίνακας</h3><button className="export-btn" onClick={() => exportCSV(sortedTable)}>⬇ CSV</button></div><div className="data-table-wrap"><table className="data-table"><thead><tr>{TABLE_COLS.map((c) => <th key={c.key} style={{ textAlign: c.align }} onClick={() => handleSort(c.key)}>{c.label}<span className={`sort-arrow ${sortCol === c.key ? 'sort-arrow--active' : ''}`}>{sortCol === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}</span></th>)}</tr></thead><tbody>{paged.length === 0 ? <tr><td colSpan={10} className="empty-state">Κανένα στοίχημα</td></tr> : paged.map((b) => (<tr key={b.id} className={highlightedWeek != null && b.week === highlightedWeek ? 'row-highlight' : ''}><td style={{ textAlign: 'center' }}>{b.id}</td><td style={{ textAlign: 'center' }}>{b.week}</td><td style={{ textAlign: 'center' }}>{b.betNumber}</td><td style={{ textAlign: 'left' }}>{b.betType || '—'}</td><td className="bookmaker-cell"><BookmakerLogo company={b.company} /></td><td style={{ textAlign: 'right' }}>{safeNumber(b.odds).toFixed(2)}</td><td style={{ textAlign: 'right' }}>{safeNumber(b.stake).toFixed(2)}€</td><td style={{ textAlign: 'center' }} className={b.result === 'Win' ? 'cell-win' : 'cell-lose'}>{b.result === 'Win' ? '✓' : '✗'}</td><td style={{ textAlign: 'right' }} className={safeNumber(b.profitLoss) >= 0 ? 'cell-win' : 'cell-lose'}>{safeNumber(b.profitLoss) >= 0 ? '+' : ''}{safeNumber(b.profitLoss).toFixed(2)}€</td><td style={{ textAlign: 'right' }}>{safeNumber(b.cumulativeBudget).toFixed(2)}€</td></tr>))}</tbody></table></div>{totalPages > 1 && <div className="table-pagination"><button disabled={tablePage === 0} onClick={() => setTablePage((p) => p - 1)}>←</button><span>{tablePage + 1}/{totalPages}</span><button disabled={tablePage >= totalPages - 1} onClick={() => setTablePage((p) => p + 1)}>→</button></div>}</div>);
 
   const RENDERERS = { budget: R_budget, weeklyProfit: R_weeklyProfit, winLossRatio: R_winLoss, oddsDistribution: R_oddsDist, profitByOdds: R_profitByOdds, evTracking: R_ev, kelly: R_kelly, betSize: R_betSize, winRateByWeek: R_winRate, weeklyROI: R_weeklyROI, cumulativeROI: R_cumROI, compareWeeks: R_compare, dataTable: R_table };
 

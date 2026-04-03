@@ -12,6 +12,8 @@ const COLUMN_MAP = {
   'Στοίχημα #': 'betNumber',
   'Τύπος Στοιχήματος': 'betType',
   'Τυπος Στοιχηματος': 'betType',
+  'Εταιρία': 'company',
+  'Εταιρια': 'company',
   'Ποντάρισμα': 'stake',
   'Απόδοση': 'odds',
   'Αποτέλεσμα': 'result',
@@ -22,9 +24,18 @@ const COLUMN_MAP = {
   'Συνολικο ROI %': 'cumulativeROIRaw',
   // English fallbacks
   'Week': 'week', 'Date Range': 'dateRange', 'Stake': 'stake', 'odd': 'odds',
-  'Bet Type': 'betType',
+  'Bet Type': 'betType', 'Company': 'company',
   'Win / Lose': 'result', 'Profit / Loss': 'profitLoss',
   'Symbol (Win / Loss)': 'symbol', 'Cumulative Budget': 'cumulativeBudget',
+};
+
+const COMPANY_ALIASES = {
+  stoiximan: 'stoiximan',
+  interwetten: 'interwetten',
+  intervetten: 'interwetten',
+  bwin: 'bwin',
+  bet365: 'bet365',
+  novibet: 'novibet',
 };
 
 // ===========================================================================
@@ -37,6 +48,14 @@ const toNumber = (raw) => {
   return parseFloat(raw.replace(/[€\s\u00A0]/g, '').replace(',', '.'));
 };
 export const safeNumber = (v) => { const n = toNumber(v); return isNaN(n) ? 0 : n; };
+
+const normaliseCompany = (raw) => {
+  if (raw == null) return '';
+  const trimmed = String(raw).trim();
+  if (!trimmed) return '';
+  const compact = trimmed.toLowerCase().replace(/\s+/g, '');
+  return COMPANY_ALIASES[compact] || trimmed;
+};
 
 // ===========================================================================
 // CSV Parsing
@@ -90,6 +109,7 @@ const normaliseRow = (raw, id) => {
   row.profitLoss = safeNumber(row.profitLoss);
   row.cumulativeBudget = safeNumber(row.cumulativeBudget);
   row.betType = row.betType || '';
+  row.company = normaliseCompany(row.company);
   if (row.betNumber != null && typeof row.betNumber === 'string') {
     // betNumber in your sheet is a description like "Lewis - Τοπ 3", keep as string
     row.betLabel = row.betNumber;
@@ -297,6 +317,7 @@ const fetchFreshData = async () => {
 export const generateSampleData = () => {
   const data = []; let budget = 100;
   const betTypes = ['Single', 'Over/Under', 'Handicap', 'BTTS', '1X2'];
+  const companies = ['stoiximan', 'interwetten', 'bwin', 'bet365', 'novibet'];
   for (let w = 1; w <= 8; w++) {
     const dr = `${(w - 1) * 7 + 1}-${w * 7}/5/2025`;
     for (let b = 1; b <= 5; b++) {
@@ -307,6 +328,7 @@ export const generateSampleData = () => {
       data.push({
         id: data.length + 1, week: w, dateRange: dr, betNumber: b,
         betLabel: `Bet ${b}`, betType: betTypes[Math.floor(Math.random() * betTypes.length)],
+        company: companies[Math.floor(Math.random() * companies.length)],
         stake: 10, odds,
         result: win ? 'Win' : 'Lose',
         profitLoss: parseFloat(pl.toFixed(2)),

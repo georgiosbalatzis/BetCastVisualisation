@@ -671,7 +671,7 @@ code {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
-  min-width: 600px;
+  min-width: 760px;
 }
 
 .data-table th,
@@ -718,6 +718,99 @@ code {
 
 .data-table .cell-win  { color: var(--success); font-weight: 600; }
 .data-table .cell-lose { color: var(--error); font-weight: 600; }
+
+.bookmaker-cell {
+  text-align: center !important;
+}
+
+.bookmaker-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 7.2rem;
+  padding: 0.38rem 0.62rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.bookmaker-logo__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.22rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.bookmaker-logo__word {
+  display: inline-block;
+}
+
+.bookmaker-logo__accent {
+  color: #ffe082;
+}
+
+.bookmaker-logo__dot {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+.bookmaker-logo--stoiximan {
+  background: linear-gradient(135deg, #1c4ddb, #214ab7);
+  border-color: rgba(28, 77, 219, 0.45);
+  color: #ffffff;
+}
+
+.bookmaker-logo--interwetten {
+  background: linear-gradient(135deg, #0b3a69, #0b6e8f);
+  border-color: rgba(11, 110, 143, 0.45);
+  color: #ffffff;
+}
+
+.bookmaker-logo--interwetten .bookmaker-logo__mark {
+  background: rgba(230, 255, 255, 0.2);
+}
+
+.bookmaker-logo--bwin {
+  background: linear-gradient(135deg, #121212, #2a2a2a);
+  border-color: rgba(250, 204, 21, 0.38);
+  color: #facc15;
+  text-transform: lowercase;
+}
+
+.bookmaker-logo--bet365 {
+  background: linear-gradient(135deg, #0c6d38, #138a4d);
+  border-color: rgba(19, 138, 77, 0.45);
+  color: #ffffff;
+}
+
+.bookmaker-logo--novibet {
+  background: linear-gradient(135deg, #176b57, #0f8a6a);
+  border-color: rgba(15, 138, 106, 0.45);
+  color: #ffffff;
+}
+
+.bookmaker-logo--unknown {
+  background: var(--bg-card-hover);
+  border-color: var(--border);
+  color: var(--text-muted);
+  min-width: auto;
+}
 
 .table-pagination {
   display: flex;
@@ -1075,4 +1168,3 @@ code {
     justify-content: flex-start;
   }
 }
-
