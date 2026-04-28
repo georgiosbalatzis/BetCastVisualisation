@@ -362,6 +362,13 @@ const BettingVisualizations = ({ embedded = false }) => {
     setShareFeedback(copied ? 'Το iframe code αντιγράφηκε.' : 'Δεν ήταν δυνατή η αντιγραφή του iframe code.');
   }, [embedSnippet]);
 
+  const handleCopyTabLink = useCallback(async () => {
+    const copied = await copyText(fullAppUrl);
+    setShareFeedback(copied ? 'Το link στην καρτέλα αντιγράφηκε.' : 'Δεν ήταν δυνατή η αντιγραφή του link.');
+  }, [fullAppUrl]);
+
+  const activeViz = useMemo(() => VIZ_OPTIONS.find((option) => option.id === selectedViz), [selectedViz]);
+
   useEffect(() => {
     if (!embedded || window.parent === window || !mainContentRef.current) return undefined;
 
@@ -419,8 +426,72 @@ const BettingVisualizations = ({ embedded = false }) => {
     </div>);
   };
 
-  // Data table — now includes betType column
-  const R_table = () => (<div className="card mb-section"><div className="flex-between" style={{ marginBottom: '0.75rem' }}><h3 className="card-chart-title" style={{ marginBottom: 0 }}>Πίνακας</h3><button className="export-btn" onClick={() => exportCSV(sortedTable)}>⬇ CSV</button></div><div className="data-table-wrap"><table className="data-table"><thead><tr>{TABLE_COLS.map((c) => <th key={c.key} style={{ textAlign: c.align }} onClick={() => handleSort(c.key)}>{c.label}<span className={`sort-arrow ${sortCol === c.key ? 'sort-arrow--active' : ''}`}>{sortCol === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}</span></th>)}</tr></thead><tbody>{paged.length === 0 ? <tr><td colSpan={10} className="empty-state">Κανένα στοίχημα</td></tr> : paged.map((b) => (<tr key={b.id} className={highlightedWeek != null && b.week === highlightedWeek ? 'row-highlight' : ''}><td style={{ textAlign: 'center' }}>{b.id}</td><td style={{ textAlign: 'center' }}>{b.week}</td><td style={{ textAlign: 'center' }}>{b.betNumber}</td><td style={{ textAlign: 'left' }}>{b.betType || '—'}</td><td className="bookmaker-cell"><BookmakerLogo company={b.company} /></td><td style={{ textAlign: 'right' }}>{safeNumber(b.odds).toFixed(2)}</td><td style={{ textAlign: 'right' }}>{safeNumber(b.stake).toFixed(2)}€</td><td style={{ textAlign: 'center' }} className={b.result === 'Win' ? 'cell-win' : 'cell-lose'}>{b.result === 'Win' ? '✓' : '✗'}</td><td style={{ textAlign: 'right' }} className={safeNumber(b.profitLoss) >= 0 ? 'cell-win' : 'cell-lose'}>{safeNumber(b.profitLoss) >= 0 ? '+' : ''}{safeNumber(b.profitLoss).toFixed(2)}€</td><td style={{ textAlign: 'right' }}>{safeNumber(b.cumulativeBudget).toFixed(2)}€</td></tr>))}</tbody></table></div>{totalPages > 1 && <div className="table-pagination"><button disabled={tablePage === 0} onClick={() => setTablePage((p) => p - 1)}>←</button><span>{tablePage + 1}/{totalPages}</span><button disabled={tablePage >= totalPages - 1} onClick={() => setTablePage((p) => p + 1)}>→</button></div>}</div>);
+  // Data table — now includes betType column + week filter
+  const R_table = () => (
+    <div className="card mb-section">
+      <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+        <h3 className="card-chart-title" style={{ marginBottom: 0 }}>Πίνακας</h3>
+        <button className="export-btn" onClick={() => exportCSV(sortedTable)}>⬇ CSV</button>
+      </div>
+      <div className="filter-bar table-filter-bar">
+        <label htmlFor="table-week-filter">Φίλτρο εβδομάδας</label>
+        <select
+          id="table-week-filter"
+          value={highlightedWeek ?? ''}
+          onChange={(e) => startTransition(() => {
+            setHighlightedWeek(e.target.value ? Number(e.target.value) : null);
+            setTablePage(0);
+          })}
+        >
+          <option value="">Όλες οι εβδομάδες</option>
+          {allWeeks.map((w) => <option key={w} value={w}>Εβδ. {w}</option>)}
+        </select>
+        {highlightedWeek != null && (
+          <button className="filter-reset-btn" onClick={() => startTransition(() => { setHighlightedWeek(null); setTablePage(0); })}>✕</button>
+        )}
+        <span className="table-filter-count">{sortedTable.length} στοιχήματα</span>
+      </div>
+      <div className="data-table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              {TABLE_COLS.map((c) => (
+                <th key={c.key} style={{ textAlign: c.align }} onClick={() => handleSort(c.key)}>
+                  {c.label}
+                  <span className={`sort-arrow ${sortCol === c.key ? 'sort-arrow--active' : ''}`}>{sortCol === c.key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {paged.length === 0 ? (
+              <tr><td colSpan={10} className="empty-state">Κανένα στοίχημα</td></tr>
+            ) : paged.map((b) => (
+              <tr key={b.id} className={highlightedWeek != null && b.week === highlightedWeek ? 'row-highlight' : ''}>
+                <td style={{ textAlign: 'center' }}>{b.id}</td>
+                <td style={{ textAlign: 'center' }}>{b.week}</td>
+                <td style={{ textAlign: 'center' }}>{b.betNumber}</td>
+                <td style={{ textAlign: 'left' }}>{b.betType || '—'}</td>
+                <td className="bookmaker-cell"><BookmakerLogo company={b.company} /></td>
+                <td style={{ textAlign: 'right' }}>{safeNumber(b.odds).toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }}>{safeNumber(b.stake).toFixed(2)}€</td>
+                <td style={{ textAlign: 'center' }} className={b.result === 'Win' ? 'cell-win' : 'cell-lose'}>{b.result === 'Win' ? '✓' : '✗'}</td>
+                <td style={{ textAlign: 'right' }} className={safeNumber(b.profitLoss) >= 0 ? 'cell-win' : 'cell-lose'}>{safeNumber(b.profitLoss) >= 0 ? '+' : ''}{safeNumber(b.profitLoss).toFixed(2)}€</td>
+                <td style={{ textAlign: 'right' }}>{safeNumber(b.cumulativeBudget).toFixed(2)}€</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {totalPages > 1 && (
+        <div className="table-pagination">
+          <button disabled={tablePage === 0} onClick={() => setTablePage((p) => p - 1)}>←</button>
+          <span>{tablePage + 1}/{totalPages}</span>
+          <button disabled={tablePage >= totalPages - 1} onClick={() => setTablePage((p) => p + 1)}>→</button>
+        </div>
+      )}
+    </div>
+  );
 
   const RENDERERS = { budget: R_budget, weeklyProfit: R_weeklyProfit, winLossRatio: R_winLoss, oddsDistribution: R_oddsDist, profitByOdds: R_profitByOdds, evTracking: R_ev, kelly: R_kelly, betSize: R_betSize, winRateByWeek: R_winRate, weeklyROI: R_weeklyROI, cumulativeROI: R_cumROI, compareWeeks: R_compare, dataTable: R_table };
 
@@ -499,6 +570,18 @@ const BettingVisualizations = ({ embedded = false }) => {
       {/* Chart area with swipe + fullscreen + scroll anchor */}
       <div ref={chartRef} className={fullscreen ? 'fullscreen-overlay' : ''} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {fullscreen && <button className="fullscreen-close" onClick={() => setFullscreen(false)}>✕</button>}
+        {hasData && !embedded && (
+          <div className="chart-actions mb-section">
+            <span className="chart-actions__label">
+              <span className="tab-icon">{activeViz?.icon}</span>
+              {activeViz?.name}
+            </span>
+            <div className="chart-actions__buttons">
+              <button className="export-btn" onClick={handleCopyTabLink} title="Αντιγραφή link στην καρτέλα">🔗 Link</button>
+              <button className="export-btn" onClick={handleCopyEmbed} title="Αντιγραφή iframe για embedding">{"</> Embed αυτή την καρτέλα"}</button>
+            </div>
+          </div>
+        )}
         {!hasData ? <div className="card mb-section"><div className="empty-state"><p>Δεν βρέθηκαν στοιχήματα.</p><button className="filter-reset-btn" onClick={resetAllFilters}>Reset</button></div></div> : RENDERERS[selectedViz]?.()}
       </div>
     </div>
