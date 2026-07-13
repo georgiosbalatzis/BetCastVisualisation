@@ -8,7 +8,7 @@ import {
   fetchBettingData, calculateWeeklySummary, calculateROI, calculateStreaks,
   safeNumber, calculateAvgOdds, calculateProfitByOddsRange, calculateEVByOddsRange,
   findBestWorstWeeks, addRollingAverage, getLastFetchedTimestamp, clearCache,
-  calculateKelly, calculateVariance, buildBetSizeAnalysis,
+  calculateKelly, calculateVariance, buildBetSizeAnalysis, DATA_SOURCES,
 } from '../services/googleSheetService';
 import { useTheme } from '../context/ThemeContext';
 
@@ -115,9 +115,12 @@ const TABLE_COLS = [
 const ROWS_PP = 15;
 const AUTO_REFRESH_MS = 3 * 60 * 1000; // #13 — 3 min
 const EMBED_PARAM = 'embed';
+const DATA_SOURCE_PARAM = 'season';
 const EMBED_MIN_HEIGHT = 960;
 const EMBED_RESIZE_EVENT = 'betcast:resize';
 const EMBED_TITLE = 'BetCast F1Stories';
+const DEFAULT_DATA_SOURCE = 'current';
+const DATA_SOURCE_OPTIONS = Object.values(DATA_SOURCES);
 
 const getNumericParam = (params, key) => {
   const value = params.get(key);
@@ -126,10 +129,13 @@ const getNumericParam = (params, key) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const buildShareUrl = ({ selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded = false }) => {
+const normaliseDataSourceId = (value) => DATA_SOURCES[value] ? value : DEFAULT_DATA_SOURCE;
+
+const buildShareUrl = ({ selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded = false }) => {
   if (typeof window === 'undefined') return '';
   const params = new URLSearchParams();
   if (selectedViz !== 'budget') params.set('viz', selectedViz);
+  if (dataSource && dataSource !== DEFAULT_DATA_SOURCE) params.set(DATA_SOURCE_PARAM, dataSource);
   if (weekFrom != null) params.set('from', String(weekFrom));
   if (weekTo != null) params.set('to', String(weekTo));
   if (highlightedWeek != null) params.set('week', String(highlightedWeek));
@@ -170,6 +176,10 @@ const BettingVisualizations = ({ embedded = false }) => {
   const [error, setError] = useState(null);
   const [bettingData, setBettingData] = useState([]);
   const [selectedViz, setSelectedViz] = useState('budget');
+  const [dataSource, setDataSource] = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_DATA_SOURCE;
+    return normaliseDataSourceId(new URLSearchParams(window.location.search).get(DATA_SOURCE_PARAM));
+  });
   const [activeIndex, setActiveIndex] = useState(0);
   const [weekFrom, setWeekFrom] = useState(null);
   const [weekTo, setWeekTo] = useState(null);
@@ -230,15 +240,15 @@ const BettingVisualizations = ({ embedded = false }) => {
   const processData = useCallback((data) => {
     startTransition(() => {
       setBettingData(data);
-      setLastFetched(getLastFetchedTimestamp());
+      setLastFetched(getLastFetchedTimestamp(dataSource));
     });
-  }, []);
+  }, [dataSource]);
   const refreshData = useCallback((shouldApply = () => true) => fetchBettingData((fresh) => {
     if (shouldApply()) processData(fresh);
-  }).then((data) => {
+  }, dataSource).then((data) => {
     if (shouldApply()) processData(data);
     return data;
-  }), [processData]);
+  }), [dataSource, processData]);
 
   useEffect(() => {
     let cancelled = false;
@@ -274,6 +284,7 @@ const BettingVisualizations = ({ embedded = false }) => {
     const params = new URLSearchParams(window.location.search);
     const requestedViz = params.get('viz');
     if (requestedViz && VIZ_OPTIONS.some((option) => option.id === requestedViz)) setSelectedViz(requestedViz);
+    setDataSource(normaliseDataSourceId(params.get(DATA_SOURCE_PARAM)));
     setWeekFrom(getNumericParam(params, 'from'));
     setWeekTo(getNumericParam(params, 'to'));
     setHighlightedWeek(getNumericParam(params, 'week'));
@@ -285,6 +296,7 @@ const BettingVisualizations = ({ embedded = false }) => {
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedViz !== 'budget') params.set('viz', selectedViz);
+    if (dataSource !== DEFAULT_DATA_SOURCE) params.set(DATA_SOURCE_PARAM, dataSource);
     if (weekFrom != null) params.set('from', String(weekFrom));
     if (weekTo != null) params.set('to', String(weekTo));
     if (highlightedWeek != null) params.set('week', String(highlightedWeek));
@@ -293,7 +305,7 @@ const BettingVisualizations = ({ embedded = false }) => {
     if (embedded) params.set(EMBED_PARAM, '1');
     const queryString = params.toString();
     window.history.replaceState(null, '', `${window.location.pathname}${queryString ? `?${queryString}` : ''}`);
-  }, [selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded]);
+  }, [selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded]);
 
   useEffect(() => {
     if (!shareFeedback) return undefined;
@@ -301,8 +313,17 @@ const BettingVisualizations = ({ embedded = false }) => {
     return () => clearTimeout(timeout);
   }, [shareFeedback]);
 
-  const handleRetry = useCallback(() => { clearCache(); setError(null); setLoading(true); refreshData().catch(() => setError('Αποτυχία.')).finally(() => setLoading(false)); }, [refreshData]);
+  const handleRetry = useCallback(() => { clearCache(dataSource); setError(null); setLoading(true); refreshData().catch(() => setError('Αποτυχία.')).finally(() => setLoading(false)); }, [dataSource, refreshData]);
   const handleChartWeekClick = useCallback((wn) => startTransition(() => setHighlightedWeek((p) => p === wn ? null : wn)), []);
+  const updateDataSource = useCallback((value) => startTransition(() => {
+    setDataSource(normaliseDataSourceId(value));
+    setWeekFrom(null);
+    setWeekTo(null);
+    setHighlightedWeek(null);
+    setCmpWeekA(null);
+    setCmpWeekB(null);
+    setTablePage(0);
+  }), []);
   const updateWeekFrom = useCallback((value) => startTransition(() => { setWeekFrom(value); setTablePage(0); }), []);
   const updateWeekTo = useCallback((value) => startTransition(() => { setWeekTo(value); setTablePage(0); }), []);
   const resetWeekRange = useCallback(() => startTransition(() => { setWeekFrom(null); setWeekTo(null); setTablePage(0); }), []);
@@ -347,7 +368,7 @@ const BettingVisualizations = ({ embedded = false }) => {
 
   // Last updated
   const lastUpdated = useMemo(() => { if (!lastFetched) return null; const m = Math.floor((Date.now() - lastFetched) / 60000); if (m < 1) return 'μόλις τώρα'; return `πριν ${m} λεπτά`; }, [lastFetched]);
-  const shareContext = useMemo(() => ({ selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB }), [selectedViz, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB]);
+  const shareContext = useMemo(() => ({ selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB }), [selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB]);
   const fullAppUrl = useMemo(() => buildShareUrl({ ...shareContext, embedded: false }), [shareContext]);
   const embedUrl = useMemo(() => buildShareUrl({ ...shareContext, embedded: true }), [shareContext]);
   const embedSnippet = useMemo(() => buildEmbedSnippet(embedUrl), [embedUrl]);
@@ -387,7 +408,7 @@ const BettingVisualizations = ({ embedded = false }) => {
     const observer = new ResizeObserver(postHeightSoon);
     observer.observe(mainContentRef.current);
     return () => observer.disconnect();
-  }, [embedded, loading, error, selectedViz, tablePage, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, hasData]);
+  }, [embedded, loading, error, selectedViz, dataSource, tablePage, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, hasData]);
 
   // =========================================================================
   // Chart renderers
@@ -431,7 +452,7 @@ const BettingVisualizations = ({ embedded = false }) => {
     <div className="card mb-section">
       <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
         <h3 className="card-chart-title" style={{ marginBottom: 0 }}>Πίνακας</h3>
-        <button className="export-btn" onClick={() => exportCSV(sortedTable)}>⬇ CSV</button>
+        <button className="export-btn" onClick={() => exportCSV(sortedTable, `betcast_${dataSource}_export.csv`)}>⬇ CSV</button>
       </div>
       <div className="filter-bar table-filter-bar">
         <label htmlFor="table-week-filter">Φίλτρο εβδομάδας</label>
@@ -532,6 +553,12 @@ const BettingVisualizations = ({ embedded = false }) => {
         </div>
         <div className="page-toolbar__actions">
           {lastUpdated && <span className="last-updated">🔄 {lastUpdated}</span>}
+          <label className="season-select">
+            <span>Σεζόν</span>
+            <select value={dataSource} onChange={(e) => updateDataSource(e.target.value)}>
+              {DATA_SOURCE_OPTIONS.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
+            </select>
+          </label>
           {!embedded && <button className="export-btn" onClick={handleCopyLink}>🔗 Link</button>}
           {!embedded && <button className="export-btn" onClick={handleCopyEmbed}>{"</> Embed"}</button>}
           {embedded && <a className="export-btn" href={fullAppUrl} target="_blank" rel="noopener noreferrer">↗ Full App</a>}

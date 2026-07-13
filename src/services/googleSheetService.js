@@ -138,16 +138,33 @@ const assignBetNumbers = (data) => {
 // CORS + Fetch — FAST strategy
 // ===========================================================================
 
-// YOUR actual sheet: ID = 16cz7p-hZIs3PrvhL9JJ1q1tqyVEupXQ2k8kN8F9mexc, gid = 796888004
-const SHEET_ID = '16cz7p-hZIs3PrvhL9JJ1q1tqyVEupXQ2k8kN8F9mexc';
-const SHEET_GID = '796888004';
+export const DATA_SOURCES = {
+  current: {
+    id: 'current',
+    label: 'Φέτος',
+    sheetId: '16cz7p-hZIs3PrvhL9JJ1q1tqyVEupXQ2k8kN8F9mexc',
+    gid: '796888004',
+    allowSampleFallback: true,
+  },
+  lastYear: {
+    id: 'lastYear',
+    label: 'Πέρσι',
+    sheetId: '1nMytseR9C-GJNri0n5DAW25jijullNMVUcTj1mLEEYs',
+    allowSampleFallback: false,
+  },
+};
+
+const DEFAULT_DATA_SOURCE_ID = 'current';
+
+const resolveDataSource = (sourceId = DEFAULT_DATA_SOURCE_ID) =>
+  DATA_SOURCES[sourceId] || DATA_SOURCES[DEFAULT_DATA_SOURCE_ID];
 
 // Multiple URL strategies — try fastest first
-const buildURLs = () => [
+const buildURLs = (source) => [
   // Strategy 1: Direct export (works if sheet is shared with "Anyone with link")
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`,
+  `https://docs.google.com/spreadsheets/d/${source.sheetId}/export?format=csv${source.gid ? `&gid=${source.gid}` : ''}`,
   // Strategy 2: gviz endpoint (often faster, returns CSV)
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`,
+  `https://docs.google.com/spreadsheets/d/${source.sheetId}/gviz/tq?tqx=out:csv${source.gid ? `&gid=${source.gid}` : ''}`,
 ];
 
 // CORS proxies as fallback — only used if direct fetch fails
@@ -162,8 +179,8 @@ const CORS_PROXIES = [
  * 2. If CORS blocks them, try each proxy with a SHORT timeout (5s)
  * 3. Total max time: ~15s instead of 41s
  */
-const fetchCSV = async () => {
-  const urls = buildURLs();
+const fetchCSV = async (source) => {
+  const urls = buildURLs(source);
 
   // Attempt 1: Direct fetch (fast, no proxy overhead)
   for (const url of urls) {
@@ -209,12 +226,14 @@ const fetchCSV = async () => {
 const CACHE_KEY = 'betcast_data_cache';
 const CACHE_TS_KEY = 'betcast_data_cache_ts';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-let inFlightFreshDataPromise = null;
+const inFlightFreshDataPromises = new Map();
 
-const readCache = () => {
+const scopedCacheKey = (baseKey, sourceId = DEFAULT_DATA_SOURCE_ID) => `${baseKey}_${sourceId}`;
+
+const readCache = (sourceId) => {
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    const ts = sessionStorage.getItem(CACHE_TS_KEY);
+    const raw = sessionStorage.getItem(scopedCacheKey(CACHE_KEY, sourceId));
+    const ts = sessionStorage.getItem(scopedCacheKey(CACHE_TS_KEY, sourceId));
     if (!raw || !ts) return null;
     return {
       data: JSON.parse(raw),
@@ -224,54 +243,56 @@ const readCache = () => {
   } catch { return null; }
 };
 
-const writeCache = (data) => {
+const writeCache = (data, sourceId) => {
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    sessionStorage.setItem(CACHE_TS_KEY, String(Date.now()));
+    sessionStorage.setItem(scopedCacheKey(CACHE_KEY, sourceId), JSON.stringify(data));
+    sessionStorage.setItem(scopedCacheKey(CACHE_TS_KEY, sourceId), String(Date.now()));
   } catch {}
 };
 
-export const getLastFetchedTimestamp = () => {
+export const getLastFetchedTimestamp = (sourceId = DEFAULT_DATA_SOURCE_ID) => {
   try {
-    const ts = sessionStorage.getItem(CACHE_TS_KEY);
+    const ts = sessionStorage.getItem(scopedCacheKey(CACHE_TS_KEY, sourceId));
     return ts ? parseInt(ts, 10) : null;
   } catch { return null; }
 };
 
-export const clearCache = () => {
+export const clearCache = (sourceId = DEFAULT_DATA_SOURCE_ID) => {
   try {
-    sessionStorage.removeItem(CACHE_KEY);
-    sessionStorage.removeItem(CACHE_TS_KEY);
+    sessionStorage.removeItem(scopedCacheKey(CACHE_KEY, sourceId));
+    sessionStorage.removeItem(scopedCacheKey(CACHE_TS_KEY, sourceId));
   } catch {}
 };
 
 // ===========================================================================
 // Main fetch function
 // ===========================================================================
-export const fetchBettingData = async (onBackgroundUpdate) => {
-  const cached = readCache();
+export const fetchBettingData = async (onBackgroundUpdate, sourceId = DEFAULT_DATA_SOURCE_ID) => {
+  const source = resolveDataSource(sourceId);
+  const cached = readCache(source.id);
 
   // Fresh cache — instant return
   if (cached && !cached.isStale) return cached.data;
 
   // Stale cache — return immediately, refresh in background
   if (cached && cached.isStale) {
-    fetchFreshData().then((d) => {
+    fetchFreshData(source.id).then((d) => {
       if (d && onBackgroundUpdate) onBackgroundUpdate(d);
     }).catch(() => {});
     return cached.data;
   }
 
   // No cache — must fetch
-  return fetchFreshData();
+  return fetchFreshData(source.id);
 };
 
-const fetchFreshData = async () => {
-  if (inFlightFreshDataPromise) return inFlightFreshDataPromise;
+const fetchFreshData = async (sourceId = DEFAULT_DATA_SOURCE_ID) => {
+  const source = resolveDataSource(sourceId);
+  if (inFlightFreshDataPromises.has(source.id)) return inFlightFreshDataPromises.get(source.id);
 
-  inFlightFreshDataPromise = (async () => {
+  const inFlightFreshDataPromise = (async () => {
     try {
-      const csvText = await fetchCSV();
+      const csvText = await fetchCSV(source);
       const rawRows = await parseCSVText(csvText);
 
       if (!rawRows.length) throw new Error('No data rows in CSV');
@@ -291,23 +312,25 @@ const fetchFreshData = async () => {
       assignBetNumbers(data);
 
       // Cache
-      writeCache(data);
+      writeCache(data, source.id);
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Loaded ${data.length} real bets (filtered from ${allRows.length} rows)`);
+        console.log(`Loaded ${data.length} real bets from ${source.label} (filtered from ${allRows.length} rows)`);
         console.log('First bet:', data[0]);
       }
 
       return data;
     } catch (e) {
       console.error('Failed to load:', e);
+      if (!source.allowSampleFallback) throw e;
       console.warn('Using sample data');
       return generateSampleData();
     } finally {
-      inFlightFreshDataPromise = null;
+      inFlightFreshDataPromises.delete(source.id);
     }
   })();
 
+  inFlightFreshDataPromises.set(source.id, inFlightFreshDataPromise);
   return inFlightFreshDataPromise;
 };
 
