@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import './App.css';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -39,7 +39,7 @@ const MODE_DISPLAY = {
   dark: { label: 'Σκούρο', next: 'Φωτεινό θέμα' },
   light: { label: 'Φωτεινό', next: 'Σκούρο θέμα' },
 };
-const ThemeIcon = ({ dark }) => <svg className="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={dark ? 'M20 15.5A8 8 0 018.5 4 8 8 0 1020 15.5z' : 'M12 3v2m0 14v2M3 12h2m14 0h2m-3.36-6.36l-1.41 1.41M6.77 17.23l-1.41 1.41m0-12.46l1.41 1.41m9.9 9.9l1.41 1.41'}/></svg>;
+const ThemeIcon = ({ dark }) => <svg className="ui-icon" viewBox="0 0 24 24" aria-hidden="true">{dark ? <path d="M20 15.5A8 8 0 018.5 4 8 8 0 1020 15.5z" /> : <><circle cx="12" cy="12" r="3.5" /><path d="M12 3v2m0 14v2M3 12h2m14 0h2m-3.36-6.36l-1.41 1.41M6.77 17.23l-1.41 1.41m0-12.46l1.41 1.41m9.9 9.9l1.41 1.41" /></>}</svg>;
 function ThemeToggle() {
   const { mode, isDark, toggle } = useTheme();
   const activeMode = mode === 'auto' ? (isDark ? 'dark' : 'light') : mode;
@@ -55,6 +55,15 @@ const SocialIcon = ({ href, label, children, ...props }) => (
 );
 
 function AppContent({ embedded }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigation = [
+    ['Αρχική', 'https://f1stories.gr/'],
+    ['Άρθρα', 'https://f1stories.gr/blog-module/blog/index.html'],
+    ['YouTube', 'https://www.youtube.com/@f1_stories_original'],
+    ['Βαθμολογία', 'https://f1stories.gr/standings/'],
+    ['Δεδομένα', 'https://f1stories.gr/standings/?tab=tyre-pace'],
+    ['Συντάκτες', 'https://f1stories.gr/authors/'],
+  ];
   return (
     <div className={`App${embedded ? ' App--embedded' : ''}`}>
       {!embedded && (
@@ -65,9 +74,16 @@ function AppContent({ embedded }) {
               <span>F1 STORIES<span className="brand-dot">.</span></span>
             </a>
             <span className="sub-brand">BETCAST</span>
+            <nav className={`header-nav${menuOpen ? ' header-nav--open' : ''}`} aria-label="Κύρια πλοήγηση">
+              {navigation.map(([label, href]) => <a key={label} href={href}>{label}</a>)}
+              <a href="https://georgiosbalatzis.github.io/BetCastVisualisation/" aria-current="page">BetCast</a>
+            </nav>
             <div className="header-actions">
               <a className="header-context" href="https://f1stories.gr/standings/">Data Hub</a>
               <ThemeToggle />
+              <button className="menu-toggle" type="button" aria-label="Εναλλαγή μενού" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
+                <span aria-hidden="true">☰</span>
+              </button>
             </div>
           </div>
         </header>
@@ -82,10 +98,8 @@ function AppContent({ embedded }) {
       {!embedded && (
         <footer className="app-footer">
           <div className="container">
-            <p className="footer-brand">F1 STORIES<span className="brand-dot">.</span> / BETCAST</p>
-            <p>© {new Date().getFullYear()} F1 Stories · Στοιχηματική ανάλυση</p>
-            <p className="mt-sub">Powered by Georgios Balatzis &amp; F1 Stories</p>
-            <p className="mt-sub"><a href="https://f1stories.gr" target="_blank" rel="noopener noreferrer">F1 Stories</a></p>
+            <div className="footer-main"><p className="footer-brand">F1 STORIES<span className="brand-dot">.</span> / BETCAST</p><p>© {new Date().getFullYear()} F1 Stories · Στοιχηματική ανάλυση</p><p className="mt-sub">Powered by Georgios Balatzis</p></div>
+            <nav className="footer-utility" aria-label="Χρήσιμοι σύνδεσμοι"><a href="https://f1stories.gr/privacy/privacy.html">Απόρρητο</a><a href="https://f1stories.gr/privacy/terms.html">Όροι χρήσης</a><a href="https://f1stories.gr/">F1 Stories</a></nav>
             <div className="social-media">
               <SocialIcon href="https://www.youtube.com/@F1_Stories_Original" label="YouTube">
                 <path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 00.5 6.19 31.6 31.6 0 000 12a31.6 31.6 0 00.5 5.81 3.02 3.02 0 002.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.6 31.6 0 0024 12a31.6 31.6 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/>
@@ -116,11 +130,10 @@ function AppContent({ embedded }) {
 function VisualizationFallback({ embedded }) {
   return (
     <main className={`main-content${embedded ? ' main-content--embedded' : ''}`} aria-busy="true">
-      <p className="section-label">01 / BETCAST</p>
-      <h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1>
-      <p role="status" className="state-copy">Φόρτωση στοιχημάτων…</p>
-      <div className="skeleton skeleton-stat" />
-      <div className="skeleton skeleton-chart" />
+      <div className="page-toolbar"><div className="page-toolbar__heading"><h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1><p className="page-intro">Στοιχηματική ανάλυση. Κάθε επιλογή, κάθε εβδομάδα.</p></div></div>
+      <section className="scope-bar loading-scope" aria-label="Φόρτωση φίλτρων"><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /></section>
+      <section className="metrics loading-metrics" aria-label="Φόρτωση σύνοψης"><div className="skeleton skeleton-value" /><div className="skeleton skeleton-value" /></section>
+      <section className="analysis-section loading-analysis"><div className="analysis-heading"><span className="section-label">02 / ΑΝΑΛΥΣΗ</span><span className="skeleton skeleton-selector" /></div><p role="status" className="state-copy">Φόρτωση στοιχημάτων…</p><div className="skeleton skeleton-chart" /></section>
     </main>
   );
 }
