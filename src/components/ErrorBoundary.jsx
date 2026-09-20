@@ -21,9 +21,8 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="card" style={{ margin: '2rem auto', maxWidth: '500px', textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚠️</div>
-          <h2 style={{ marginBottom: '0.5rem', color: 'var(--text-heading)' }}>Κάτι πήγε στραβά</h2>
+        <div className="inline-error" role="alert" style={{ margin: '2rem auto', maxWidth: '500px' }}>
+          <h2 style={{ marginBottom: '0.5rem', color: 'var(--text)' }}>Κάτι πήγε στραβά</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>
             Παρουσιάστηκε σφάλμα κατά την εμφάνιση. Δοκιμάστε ξανά.
           </p>

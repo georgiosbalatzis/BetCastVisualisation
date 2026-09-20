@@ -1,0 +1,269 @@
+{
+  "results": [
+    {
+      "theme": "dark",
+      "width": 390,
+      "state": "default",
+      "overflow": false,
+      "metrics": "Budget\n374.00€\nROI\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 560.796875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "budget"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "state": "table",
+      "overflow": false,
+      "metrics": "Budget\n374.00€\nROI\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 560.796875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "dataTable"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "state": "dense",
+      "overflow": false,
+      "metrics": "Budget\n374.00€\nROI\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 560.796875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "oddsDistribution"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "state": "empty",
+      "overflow": false,
+      "metrics": "Budget\n0.00€\nROI\n0.0%\nΣτοιχήματα\n0\nΝίκες\n0\nΠοσοστό νικών\n0.0%",
+      "chartTop": 563.296875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": true,
+      "select": "budget"
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "state": "default",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 531.296875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "budget"
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "state": "table",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 531.296875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "dataTable"
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "state": "dense",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 531.296875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "oddsDistribution"
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "state": "empty",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n0.00€\nROI Απόδοση πονταρίσματος\n0.0%\nΣτοιχήματα\n0\nΝίκες\n0\nΠοσοστό νικών\n0.0%",
+      "chartTop": 531.296875,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": true,
+      "select": "budget"
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "state": "default",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 508.390625,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "budget"
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "state": "table",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 508.390625,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "dataTable"
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "state": "dense",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 508.390625,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": false,
+      "select": "oddsDistribution"
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "state": "empty",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n0.00€\nROI Απόδοση πονταρίσματος\n0.0%\nΣτοιχήματα\n0\nΝίκες\n0\nΠοσοστό νικών\n0.0%",
+      "chartTop": 508.390625,
+      "bodyTheme": "dark-mode",
+      "emptyVisible": true,
+      "select": "budget"
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "state": "default",
+      "overflow": false,
+      "metrics": "Budget\n374.00€\nROI\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 560.796875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "budget"
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "state": "table",
+      "overflow": false,
+      "metrics": "Budget\n374.00€\nROI\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 560.796875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "dataTable"
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "state": "dense",
+      "overflow": false,
+      "metrics": "Budget\n374.00€\nROI\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 560.796875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "oddsDistribution"
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "state": "empty",
+      "overflow": false,
+      "metrics": "Budget\n0.00€\nROI\n0.0%\nΣτοιχήματα\n0\nΝίκες\n0\nΠοσοστό νικών\n0.0%",
+      "chartTop": 563.296875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": true,
+      "select": "budget"
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "state": "default",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 531.296875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "budget"
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "state": "table",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 531.296875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "dataTable"
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "state": "dense",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 531.296875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "oddsDistribution"
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "state": "empty",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n0.00€\nROI Απόδοση πονταρίσματος\n0.0%\nΣτοιχήματα\n0\nΝίκες\n0\nΠοσοστό νικών\n0.0%",
+      "chartTop": 531.296875,
+      "bodyTheme": "light-mode",
+      "emptyVisible": true,
+      "select": "budget"
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "state": "default",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 508.390625,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "budget"
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "state": "table",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 508.390625,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "dataTable"
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "state": "dense",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n374.00€\nROI Απόδοση πονταρίσματος\n31.2%\nΣτοιχήματα\n63\nΝίκες\n24\nΠοσοστό νικών\n38.1%",
+      "chartTop": 508.390625,
+      "bodyTheme": "light-mode",
+      "emptyVisible": false,
+      "select": "oddsDistribution"
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "state": "empty",
+      "overflow": false,
+      "metrics": "Budget Διαθέσιμο ποσό\n0.00€\nROI Απόδοση πονταρίσματος\n0.0%\nΣτοιχήματα\n0\nΝίκες\n0\nΠοσοστό νικών\n0.0%",
+      "chartTop": 508.390625,
+      "bodyTheme": "light-mode",
+      "emptyVisible": true,
+      "select": "budget"
+    }
+  ],
+  "errors": []
+}

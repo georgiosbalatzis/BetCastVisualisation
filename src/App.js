@@ -36,15 +36,15 @@ const getEmbedMode = () => {
 
 // Theme toggle
 const MODE_DISPLAY = {
-  dark: { icon: '🌙', label: 'Dark', next: 'Light' },
-  light: { icon: '☀️', label: 'Light', next: 'Dark' },
+  dark: { label: 'Σκούρο', next: 'Φωτεινό θέμα' },
+  light: { label: 'Φωτεινό', next: 'Σκούρο θέμα' },
 };
+const ThemeIcon = ({ dark }) => <svg className="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={dark ? 'M20 15.5A8 8 0 018.5 4 8 8 0 1020 15.5z' : 'M12 3v2m0 14v2M3 12h2m14 0h2m-3.36-6.36l-1.41 1.41M6.77 17.23l-1.41 1.41m0-12.46l1.41 1.41m9.9 9.9l1.41 1.41'}/></svg>;
 function ThemeToggle() {
   const { mode, isDark, toggle } = useTheme();
   const activeMode = mode === 'auto' ? (isDark ? 'dark' : 'light') : mode;
-  const { icon, label, next } = MODE_DISPLAY[activeMode] || MODE_DISPLAY.light;
-  const title = mode === 'auto' ? `Following system • → ${next}` : `→ ${next}`;
-  return (<button className="theme-toggle" onClick={toggle} aria-label={`Theme: ${label}`} title={title}><span className="theme-toggle__icon">{icon}</span><span className="theme-toggle__label">{label}</span></button>);
+  const { label, next } = MODE_DISPLAY[activeMode] || MODE_DISPLAY.light;
+  return (<button className="theme-toggle" onClick={toggle} aria-label={next} title={next}><span className="theme-toggle__icon"><ThemeIcon dark={activeMode === 'dark'} /></span><span className="theme-toggle__label">{label}</span></button>);
 }
 
 // #14 — Inline SVG social icons (eliminates 82KB Font Awesome dependency)
@@ -60,12 +60,13 @@ function AppContent({ embedded }) {
       {!embedded && (
         <header className="app-header">
           <div className="container">
-            <div className="header-brand">
-              <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="F1 Stories Logo" />
-              <h1>BetCast F1Stories</h1>
-            </div>
+            <a className="header-brand" href="https://f1stories.gr/" aria-label="F1 Stories — Αρχική">
+              <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="" />
+              <span>F1 STORIES<span className="brand-dot">.</span></span>
+            </a>
+            <span className="sub-brand">BETCAST</span>
             <div className="header-actions">
-              <span className="header-meta">Powered by Georgios Balatzis &amp; F1 Stories</span>
+              <a className="header-context" href="https://f1stories.gr/standings/">Data Hub</a>
               <ThemeToggle />
             </div>
           </div>
@@ -81,8 +82,10 @@ function AppContent({ embedded }) {
       {!embedded && (
         <footer className="app-footer">
           <div className="container">
-            <p>© {new Date().getFullYear()} BetCast - Αναλυτικά Στατιστικά Στοιχημάτων</p>
-            <p className="mt-sub"><a href="https://f1stories.gr" target="_blank" rel="noopener noreferrer">F1Stories.gr</a></p>
+            <p className="footer-brand">F1 STORIES<span className="brand-dot">.</span> / BETCAST</p>
+            <p>© {new Date().getFullYear()} F1 Stories · Στοιχηματική ανάλυση</p>
+            <p className="mt-sub">Powered by Georgios Balatzis &amp; F1 Stories</p>
+            <p className="mt-sub"><a href="https://f1stories.gr" target="_blank" rel="noopener noreferrer">F1 Stories</a></p>
             <div className="social-media">
               <SocialIcon href="https://www.youtube.com/@F1_Stories_Original" label="YouTube">
                 <path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 00.5 6.19 31.6 31.6 0 000 12a31.6 31.6 0 00.5 5.81 3.02 3.02 0 002.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.6 31.6 0 0024 12a31.6 31.6 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/>
@@ -112,17 +115,13 @@ function AppContent({ embedded }) {
 
 function VisualizationFallback({ embedded }) {
   return (
-    <div className={`main-content${embedded ? ' main-content--embedded' : ''}`}>
-      <div className="card mb-section">
-        <div className="skeleton" style={{ width: '10rem', height: '1.25rem', marginBottom: '1rem' }} />
-        <div className="stats-grid">
-          {[...Array(5)].map((_, index) => <div key={index} className="skeleton skeleton-stat" />)}
-        </div>
-      </div>
-      <div className="card mb-section">
-        <div className="skeleton skeleton-chart" />
-      </div>
-    </div>
+    <main className={`main-content${embedded ? ' main-content--embedded' : ''}`} aria-busy="true">
+      <p className="section-label">01 / BETCAST</p>
+      <h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1>
+      <p role="status" className="state-copy">Φόρτωση στοιχημάτων…</p>
+      <div className="skeleton skeleton-stat" />
+      <div className="skeleton skeleton-chart" />
+    </main>
   );
 }
 

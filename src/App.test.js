@@ -9,9 +9,10 @@ beforeEach(() => {
 
 test('renders the full application chrome by default', async () => {
   render(<App />);
-  expect(screen.getByRole('banner')).toBeInTheDocument();
-  expect(screen.getByText(/BetCast F1Stories/i)).toBeInTheDocument();
   expect(await screen.findByText('BetCast content')).toBeInTheDocument();
+  expect(screen.getByRole('banner')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'F1 Stories — Αρχική' })).toHaveAttribute('href', 'https://f1stories.gr/');
+  expect(screen.getByText('BETCAST')).toBeInTheDocument();
 });
 
 test('hides the outer chrome in embed mode', async () => {

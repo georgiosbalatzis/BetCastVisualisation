@@ -1,0 +1,607 @@
+{
+  "vars": [
+    [
+      "--border",
+      "#c8c8b9"
+    ],
+    [
+      "--st-row-height",
+      "76px"
+    ],
+    [
+      "--surface-card-raised",
+      "#1e1e20"
+    ],
+    [
+      "--floating-btn-gap",
+      "12px"
+    ],
+    [
+      "--card-border",
+      "#ffffff14"
+    ],
+    [
+      "--text-2xl",
+      "2rem"
+    ],
+    [
+      "--bg-overlay",
+      "#f2eee4f2"
+    ],
+    [
+      "--blog-accent-hover",
+      "#8e281a"
+    ],
+    [
+      "--floating-btn-size",
+      "40px"
+    ],
+    [
+      "--shadow-md",
+      "none"
+    ],
+    [
+      "--text-lg",
+      "1.125rem"
+    ],
+    [
+      "--st-constructor-rows",
+      "11"
+    ],
+    [
+      "--dark-bg",
+      "#f2eee4"
+    ],
+    [
+      "--font-body",
+      "\"IBM Plex Sans\", sans-serif"
+    ],
+    [
+      "--st-accent-readable",
+      "#a82e1c"
+    ],
+    [
+      "--success",
+      "#1aa34a"
+    ],
+    [
+      "--blog-accent",
+      "#a82e1c"
+    ],
+    [
+      "--space-xl",
+      "2.25rem"
+    ],
+    [
+      "--st-bg",
+      "#f2eee4"
+    ],
+    [
+      "--blog-shadow-sm",
+      "none"
+    ],
+    [
+      "--leading-normal",
+      "1.6"
+    ],
+    [
+      "--accent-readable",
+      "#a82e1c"
+    ],
+    [
+      "--lightningcss-dark",
+      ""
+    ],
+    [
+      "--gradient-accent",
+      "linear-gradient(#a82e1c, #a82e1c)"
+    ],
+    [
+      "--st-accent-soft",
+      "color-mix(in srgb, #ed4c32 8%, transparent)"
+    ],
+    [
+      "--primary-blue",
+      "#a82e1c"
+    ],
+    [
+      "--floating-btn-bottom",
+      "2rem"
+    ],
+    [
+      "--space-section",
+      "clamp(40px, 6vw, 80px)"
+    ],
+    [
+      "--blog-radius-sm",
+      "2px"
+    ],
+    [
+      "--st-border-strong",
+      "#5b6256"
+    ],
+    [
+      "--blog-border",
+      "#c8c8b9"
+    ],
+    [
+      "--darker-bg",
+      "#f2eee4"
+    ],
+    [
+      "--space-2xl",
+      "3.5rem"
+    ],
+    [
+      "--ease-editorial",
+      "cubic-bezier(.22,.68,0,1.02)"
+    ],
+    [
+      "--st-text-secondary",
+      "#5b6256"
+    ],
+    [
+      "--color-accent",
+      "#8fb6cf"
+    ],
+    [
+      "--st-surface",
+      "#e9e3d6"
+    ],
+    [
+      "--dur-fast",
+      ".15s"
+    ],
+    [
+      "--radius-sm",
+      "6px"
+    ],
+    [
+      "--shadow-sm",
+      "none"
+    ],
+    [
+      "--shadow-lg",
+      "0 8px 24px #00000012"
+    ],
+    [
+      "--dur-slow",
+      ".4s"
+    ],
+    [
+      "--danger",
+      "#e2302a"
+    ],
+    [
+      "--blog-accent-soft",
+      "#ed4c3214"
+    ],
+    [
+      "--ink",
+      "#20251f"
+    ],
+    [
+      "--st-accent",
+      "#ed4c32"
+    ],
+    [
+      "--section-pad-y",
+      "3.5rem"
+    ],
+    [
+      "--space-2xs",
+      ".25rem"
+    ],
+    [
+      "--st-display-font",
+      "\"IBM Plex Sans\", sans-serif"
+    ],
+    [
+      "--floating-btn-side",
+      "1.5rem"
+    ],
+    [
+      "--radius-md",
+      "8px"
+    ],
+    [
+      "--text-xl",
+      "1.5rem"
+    ],
+    [
+      "--radius-lg",
+      "12px"
+    ],
+    [
+      "--blog-surface",
+      "#e9e3d6"
+    ],
+    [
+      "--blog-text-primary",
+      "#20251f"
+    ],
+    [
+      "--radius-media",
+      "4px"
+    ],
+    [
+      "--blog-shadow-md",
+      "none"
+    ],
+    [
+      "--transition-smooth",
+      "all .5s cubic-bezier(.175, .885, .32, 1.275)"
+    ],
+    [
+      "--font-editorial",
+      "\"IBM Plex Sans\", sans-serif"
+    ],
+    [
+      "--text-secondary",
+      "#5b6256"
+    ],
+    [
+      "--st-text",
+      "#20251f"
+    ],
+    [
+      "--st-surface-2",
+      "#dfd9ca"
+    ],
+    [
+      "--accent-contrast",
+      "#f2eee4"
+    ],
+    [
+      "--st-shadow-sm",
+      "none"
+    ],
+    [
+      "--transition-base",
+      "all .3s ease"
+    ],
+    [
+      "--accent",
+      "#a82e1c"
+    ],
+    [
+      "--st-radius",
+      "0"
+    ],
+    [
+      "--st-transition",
+      ".3s cubic-bezier(.22,.68,0,1.02)"
+    ],
+    [
+      "--transition-hover",
+      "all .4s cubic-bezier(.175, .885, .32, 1.275)"
+    ],
+    [
+      "--st-surface-raised",
+      "#e9e3d6"
+    ],
+    [
+      "--dur-base",
+      ".25s"
+    ],
+    [
+      "--text-tertiary",
+      "#5b6256"
+    ],
+    [
+      "--white",
+      "#fff"
+    ],
+    [
+      "--accent-cyan",
+      "#a82e1c"
+    ],
+    [
+      "--gradient-primary",
+      "linear-gradient(#e9e3d6, #e9e3d6)"
+    ],
+    [
+      "--border-subtle",
+      "1px solid #ffffff0f"
+    ],
+    [
+      "--bg-base",
+      "#f2eee4"
+    ],
+    [
+      "--blog-border-strong",
+      "#c8c8b9"
+    ],
+    [
+      "--accent-glow",
+      "#ed4c3222"
+    ],
+    [
+      "--st-radius-sm",
+      "2px"
+    ],
+    [
+      "--blog-text-secondary",
+      "#5b6256"
+    ],
+    [
+      "--st-driver-rows",
+      "22"
+    ],
+    [
+      "--blog-text-tertiary",
+      "#5b6256"
+    ],
+    [
+      "--ease-bounce",
+      "cubic-bezier(.175,.885,.32,1.275)"
+    ],
+    [
+      "--card-radius",
+      "8px"
+    ],
+    [
+      "--danger-muted",
+      "#e2302a1f"
+    ],
+    [
+      "--text-sm",
+      ".875rem"
+    ],
+    [
+      "--ease-out",
+      "cubic-bezier(.2,.8,.3,1)"
+    ],
+    [
+      "--space-lg",
+      "1.5rem"
+    ],
+    [
+      "--st-text-muted",
+      "#5b6256"
+    ],
+    [
+      "--accent-muted",
+      "#ed4c3214"
+    ],
+    [
+      "--color-muted",
+      "#a1a1a6"
+    ],
+    [
+      "--st-shell-font",
+      "\"IBM Plex Sans\", sans-serif"
+    ],
+    [
+      "--color-surface",
+      "#111113"
+    ],
+    [
+      "--leading-tight",
+      "1.2"
+    ],
+    [
+      "--blog-radius",
+      "2px"
+    ],
+    [
+      "--light-text",
+      "#20251f"
+    ],
+    [
+      "--button-radius",
+      "2px"
+    ],
+    [
+      "--shadow-glow",
+      "0 0 0 3px #8fb6cf24"
+    ],
+    [
+      "--lightningcss-light",
+      ""
+    ],
+    [
+      "--signal",
+      "#ed4c32"
+    ],
+    [
+      "--secondary-blue",
+      "#8e281a"
+    ],
+    [
+      "--color-text",
+      "#e5e5e7"
+    ],
+    [
+      "--max-prose",
+      "68ch"
+    ],
+    [
+      "--radius-full",
+      "9999px"
+    ],
+    [
+      "--border-accent",
+      "#a82e1c"
+    ],
+    [
+      "--color-surface-raised",
+      "#161618"
+    ],
+    [
+      "--text-primary",
+      "#20251f"
+    ],
+    [
+      "--space-xs",
+      ".5rem"
+    ],
+    [
+      "--success-muted",
+      "#1aa34a1f"
+    ],
+    [
+      "--bg-surface-alt",
+      "#dfd9ca"
+    ],
+    [
+      "--control-pad-x",
+      "1rem"
+    ],
+    [
+      "--space-md",
+      "1rem"
+    ],
+    [
+      "--text-3xl",
+      "2.75rem"
+    ],
+    [
+      "--text-xs",
+      ".75rem"
+    ],
+    [
+      "--surface-card",
+      "#161618"
+    ],
+    [
+      "--blog-bg",
+      "#f2eee4"
+    ],
+    [
+      "--control-height-md",
+      "44px"
+    ],
+    [
+      "--accent-hover",
+      "#8e281a"
+    ],
+    [
+      "--control-height-sm",
+      "38px"
+    ],
+    [
+      "--st-border",
+      "#c8c8b9"
+    ],
+    [
+      "--border-white",
+      "1px solid #ffffff14"
+    ],
+    [
+      "--bg-surface",
+      "#e9e3d6"
+    ],
+    [
+      "--radius-xl",
+      "16px"
+    ],
+    [
+      "--font-display",
+      "\"IBM Plex Sans\", sans-serif"
+    ],
+    [
+      "--paper",
+      "#e9e3d6"
+    ],
+    [
+      "--font-brand",
+      "\"Barlow Condensed\", sans-serif"
+    ],
+    [
+      "--blog-surface-raised",
+      "#dfd9ca"
+    ],
+    [
+      "--text-base",
+      "1rem"
+    ],
+    [
+      "--space-sm",
+      ".75rem"
+    ],
+    [
+      "--blog-surface-hover",
+      "#dfd9ca"
+    ]
+  ],
+  "elements": [
+    {
+      "sel": "body",
+      "font": "\"IBM Plex Sans\", sans-serif",
+      "size": "16px",
+      "color": "rgb(32, 37, 31)",
+      "bg": "rgb(242, 238, 228)",
+      "max": "none",
+      "padding": "0px",
+      "border": "0px none rgb(32, 37, 31)",
+      "radius": "0px"
+    },
+    {
+      "sel": "nav",
+      "font": "\"IBM Plex Sans\", sans-serif",
+      "size": "16px",
+      "color": "rgb(32, 37, 31)",
+      "bg": "rgb(233, 227, 214)",
+      "max": "none",
+      "padding": "0px",
+      "border": "1px solid rgba(32, 37, 31, 0.2)",
+      "radius": "0px"
+    },
+    {
+      "sel": "h1",
+      "font": "\"IBM Plex Sans\", sans-serif",
+      "size": "48px",
+      "color": "rgb(32, 37, 31)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "max": "none",
+      "padding": "0px",
+      "border": "0px none rgb(32, 37, 31)",
+      "radius": "0px"
+    },
+    {
+      "sel": "h2",
+      "font": "\"IBM Plex Sans\", sans-serif",
+      "size": "23.2px",
+      "color": "rgb(32, 37, 31)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "max": "none",
+      "padding": "0px",
+      "border": "0px none rgb(32, 37, 31)",
+      "radius": "0px"
+    },
+    {
+      "sel": "footer",
+      "font": "\"IBM Plex Sans\", sans-serif",
+      "size": "16px",
+      "color": "rgb(233, 227, 214)",
+      "bg": "rgb(32, 37, 31)",
+      "max": "none",
+      "padding": "24px 0px",
+      "border": "0px none rgb(233, 227, 214)",
+      "radius": "0px"
+    },
+    {
+      "sel": ".blog-nav-brand",
+      "font": "\"Barlow Condensed\", sans-serif",
+      "size": "28px",
+      "color": "rgb(32, 37, 31)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "max": "none",
+      "padding": "0px",
+      "border": "0px none rgb(32, 37, 31)",
+      "radius": "0px"
+    },
+    {
+      "sel": ".container",
+      "font": "\"IBM Plex Sans\", sans-serif",
+      "size": "16px",
+      "color": "rgb(32, 37, 31)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "max": "1476px",
+      "padding": "0px 48px",
+      "border": "0px none rgb(32, 37, 31)",
+      "radius": "0px"
+    }
+  ]
+}

@@ -17,6 +17,8 @@ const getSystemPrefersDark = () =>
 
 /** Read saved preference from localStorage, default to 'auto' */
 const getSavedMode = () => {
+  const requested = new URLSearchParams(window.location.search).get('theme');
+  if (requested === 'dark' || requested === 'light') return requested;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === 'dark' || saved === 'light' || saved === 'auto') return saved;
