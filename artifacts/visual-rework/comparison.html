@@ -1,7 +1,0 @@
-<!doctype html>
-<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>F1 Stories / BetCast visual comparison</title>
-<style>body{margin:24px;background:#181a1c;color:#eee7dc;font:14px system-ui}header{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:24px}select{font:inherit;padding:8px;background:#222426;color:inherit;border:1px solid #47494a}main{display:grid;grid-template-columns:1fr 1fr;gap:24px}img{width:100%;display:block;border-top:1px solid #47494a}h2{font-size:14px;font-weight:500}a{color:#ff826b}</style>
-<header><h1>F1 Stories / BetCast</h1><label>Viewport <select id="width"><option>390</option><option>768</option><option>1440</option></select></label><label>Theme <select id="theme"><option>dark</option><option>light</option></select></label></header>
-<main><section><h2><a href="https://f1stories.gr/">Live publication reference</a></h2><img id="reference" alt="F1 Stories reference viewport"></section><section><h2><a href="http://localhost:3017/">Local BetCast</a></h2><img id="betcast" alt="Redesigned BetCast viewport"></section></main>
-<script>function update(){const w=document.getElementById('width').value,t=document.getElementById('theme').value;document.getElementById('reference').src=`stories-${t}-${w}-viewport.png`;document.getElementById('betcast').src=`${t}-${w}-viewport.png`}document.querySelectorAll('select').forEach(e=>e.addEventListener('change',update));update();</script></html>

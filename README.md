@@ -1,5 +1,28 @@
 # BetCast Visualization
 
+## Setup
+
+`main` contains the React / Create React App source. Install the locked dependencies
+with `npm ci`, then run `npm start` for local development.
+
+Run `npm test -- --watchAll=false` for a non-interactive test run and
+`npm run build` for a production build. CRA also checks source lint during the build;
+there is no separate lint script.
+
+## Publishing to GitHub Pages
+
+Run `npm run deploy` only when you intend to publish. Its `predeploy` hook runs
+`npm run build`, then `gh-pages -d build` publishes the generated `build/` directory
+to the `gh-pages` branch. GitHub Pages serves that branch from `/`.
+Publishing requires Git credentials with repository write access.
+
+Keep application source in `src/` and public source assets in `public/`.
+Do not commit `build/`, copied build output at the repository root, or local audit
+captures. Do not manually edit the generated `gh-pages` branch.
+
+Design constraints and optional browser audit tools are documented in
+[docs/visual-design.md](docs/visual-design.md).
+
 ## Embedding
 
 The dashboard now supports an embed mode that keeps the selected chart and filters in the URL.

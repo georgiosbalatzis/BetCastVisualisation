@@ -11,6 +11,14 @@
 # production
 /build
 
+# Local IDE configuration and generated visual audit evidence
+/.idea/
+/artifacts/visual-rework/
+
+# Stale CRA output must not be copied into the source root
+/static/
+/asset-manifest.json
+
 # misc
 .DS_Store
 .env.local
