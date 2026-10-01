@@ -588,7 +588,7 @@ const BettingVisualizations = ({ embedded = false }) => {
   ];
 
   if (loading) return (
-    <main className={`main-content${embedded ? ' main-content--embedded' : ''}`} aria-busy="true">
+    <main className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`} aria-busy="true">
       <div className="page-toolbar"><div className="page-toolbar__heading"><h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1><p className="page-intro">Στοιχηματική ανάλυση. Κάθε επιλογή, κάθε εβδομάδα.</p></div></div>
       <section className="scope-bar loading-scope" aria-label="Φόρτωση φίλτρων"><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /></section>
       <section className="metrics loading-metrics" aria-label="Φόρτωση σύνοψης"><div className="skeleton skeleton-value" /><div className="skeleton skeleton-value" /></section>
@@ -597,7 +597,7 @@ const BettingVisualizations = ({ embedded = false }) => {
   );
 
   return (
-    <main id="main" ref={mainContentRef} className={`main-content${embedded ? ' main-content--embedded' : ''}`}>
+    <main id="main" ref={mainContentRef} className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`}>
       <div className="page-toolbar">
         <div className="page-toolbar__heading">
           <h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1>

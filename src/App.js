@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import './App.css';
 import { ThemeProvider } from './context/ThemeContext';
 import SiteMasthead from './components/SiteMasthead';
+import SponsorStrip from './components/SponsorStrip';
 import SiteFooter from './components/SiteFooter';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -45,7 +46,10 @@ function AppContent({ embedded }) {
           <BettingVisualizations embedded={embedded} />
         </Suspense>
       </ErrorBoundary>
-      {!embedded && <SiteFooter />}
+      {!embedded && <>
+        <SponsorStrip />
+        <SiteFooter />
+      </>}
     </div>
   );
 }

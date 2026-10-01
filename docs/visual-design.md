@@ -109,8 +109,12 @@ The masthead follows the canonical seven-item order, with BetCast current.
 It is fixed, 75px desktop / 67px below 992px plus the bottom rule; shell gutters
 are 48/32/22px. Chart scroll offsets account for the fixed header. The product
 hero, charts, tables, calculations, data sources and content tokens are unchanged.
-The colophon follows the canonical brand/mission, section index, copyright,
-five social destinations and legal row. Source/README authorship is unchanged.
+The sponsor strip follows the main-site six-logo order immediately above the
+colophon. Assets in `public/sponsors/` are local copies of the main site
+`/images/sponsors/normalized/` artwork. Logos appear in grayscale and return
+to their original colors on hover and keyboard focus. The colophon follows
+the canonical brand/mission, section index, copyright, five social destinations
+and legal row. Source/README authorship is unchanged.
 
 Intentional adaptations:
 
@@ -128,8 +132,8 @@ Intentional adaptations:
 - `betcast_theme`, explicit URL themes, system preference and embed behavior are
   preserved. Theme-key unification remains Priority 2.
 
-Validation: four Jest tests, ESLint, production build, ten shell viewport/theme
-checks, and the existing 52 chart / 78 viewport checks passed. The browser audit
+Validation: five Jest tests, ESLint, production build, ten shell
+viewport/theme checks, and the existing 52 chart / 78 viewport checks passed. The browser audit
 also covered live sheet data, filters, sorting, tooltips, CSV, sharing, embeds and
 retry. Main-site and BetCast header/menu/footer captures were visually compared.
 The existing Testing Library emits a React `act` deprecation warning; dependencies

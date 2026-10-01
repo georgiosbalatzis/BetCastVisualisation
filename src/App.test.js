@@ -46,6 +46,27 @@ test('renders the canonical global shell with BetCast identity in the content', 
   expect(within(footer).getAllByRole('link', { name: /F1 Stories στο|Email στο/ })).toHaveLength(5);
 });
 
+test('renders every F1Stories sponsor with a local image and safe external link', async () => {
+  render(<App />);
+  const sponsors = screen.getByRole('region', { name: 'ΜΑΖΙ ΣΤΗΝ ΕΚΚΙΝΗΣΗ' });
+  const links = within(sponsors).getAllByRole('link');
+  expect(links).toHaveLength(6);
+  expect(links.map((link) => link.getAttribute('href'))).toEqual([
+    'https://balatzis.gr/',
+    'https://pourtsidisgenerators.gr/',
+    'https://balatzis.gr/#domika',
+    'https://ambrosiadis.gr/',
+    'https://www.bedandhome.gr/',
+    'https://www.grandrealm.gr/',
+  ]);
+  links.forEach((link) => {
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer sponsored');
+  });
+  expect(within(sponsors).getAllByRole('img')).toHaveLength(6);
+  expect(within(sponsors).getAllByRole('img').every((image) => image.getAttribute('src').startsWith('/sponsors/'))).toBe(true);
+});
+
 test('mobile disclosure exposes the same links, closes on Escape and restores focus', async () => {
   render(<App />);
   await screen.findByText('BetCast content');

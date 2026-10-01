@@ -42,8 +42,16 @@ const expectedLinks = [
       }
       assert.deepEqual(await page.$$eval(`${nav} a`, links => links.map(el => [el.textContent, el.href])), expectedLinks);
       assert.deepEqual(await page.$$eval(`${nav} [aria-current]`, links => links.map(el => el.textContent)), ['BetCast']);
-      assert(await page.$$eval(`${nav} a, .header-actions button, footer a`, links => links.filter(el => el.getClientRects().length).every(el => el.getBoundingClientRect().height >= 44)));
-      assert(await page.$$eval('header a[target="_blank"], footer a[target="_blank"]', links => links.every(el => el.rel.includes('noopener') && el.rel.includes('noreferrer'))));
+      assert(await page.$$eval(`${nav} a, .header-actions button, .sponsor-strip a, footer a`, links => links.filter(el => el.getClientRects().length).every(el => el.getBoundingClientRect().height >= 44)));
+      assert(await page.$$eval('header a[target="_blank"], .sponsor-strip a[target="_blank"], footer a[target="_blank"]', links => links.every(el => el.rel.includes('noopener') && el.rel.includes('noreferrer'))));
+      assert.deepEqual(await page.$$eval('.sponsor-strip li img', images => images.map(img => img.naturalWidth > 0)), [true, true, true, true, true, true]);
+      assert(await page.$$eval('.sponsor-strip a', links => links.every(el => el.href.startsWith('https://'))));
+      const firstSponsor = await page.$('.sponsor-strip a');
+      const normalFilter = await firstSponsor.$eval('img', el => getComputedStyle(el).filter);
+      await firstSponsor.hover();
+      assert.equal(await firstSponsor.$eval('img', el => getComputedStyle(el).filter), 'none');
+      await page.mouse.move(0, 0);
+      assert.equal(await firstSponsor.$eval('img', el => getComputedStyle(el).filter), normalFilter);
       if (width < 992) {
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
         await page.keyboard.press('Escape');
