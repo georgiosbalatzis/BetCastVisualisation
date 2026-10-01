@@ -2,7 +2,8 @@
 
 The application adapts F1 Stories typography, warm palettes, thin rules, and
 restrained controls to an analytical interface. The authoritative implementation
-is `src/App.css`, `src/App.js`, and `src/components/BetCast.jsx`.
+is `src/App.css`, `src/components/SiteMasthead.jsx`,
+`src/components/SiteFooter.jsx`, and `src/components/BetCast.jsx`.
 This document consolidates durable guidance from the completed visual rework and
 BC-01–BC-16 critique; the historical reports remain available in Git history.
 
@@ -33,7 +34,7 @@ BC-01–BC-16 critique; the historical reports remain available in Git history.
 | BC-09 | Expected-value labels are Greek; probability differences have percentage-point units. |
 | BC-10 | Financial/outcome colors do not imply an unexplained 50% win-rate threshold. |
 | BC-11 | Empty periods use neutral unavailable metrics, matching filter state and a clear action. |
-| BC-12 | Compact footer attribution and publication utility links. |
+| BC-12 | Global F1Stories colophon, section index, social and legal links. |
 | BC-13 | Bookmaker aliases, including `stoximan`, resolve to consistent public assets. |
 | BC-14 | Loading placeholders retain the main content regions and geometry. |
 | BC-15 | Theme control has a recognizable sun with a central disc. |
@@ -64,17 +65,27 @@ and CSV downloads. The relocated `comparison.html` viewer reads screenshots ther
 its publication reference captures must be supplied separately. Audit tools do not
 run during build or deployment and add no application dependency.
 
-Known historical limitation: `verify.cjs` assumes that a mobile table must scroll
-horizontally. The current compact table fits its viewport, so the
-`tableScroll > 0` assertion fails. Preserve this known failure until the audit is
-deliberately updated; it is not an application regression. Other assertions depend
+`verify.cjs` checks horizontal table scrolling only when the table actually
+overflows; the compact mobile table is also valid when it fits. Assertions depend
 on live sheet data, browser behavior, and clipboard permissions. Native sharing is
 tested with a stub, not an external recipient. Chromium emulation does not replace
 physical-device or cross-browser testing.
 
+The focused shell audit uses the same prerequisites and production server:
+
+```sh
+PUPPETEER_MODULE=/path/to/node_modules/puppeteer-core node scripts/visual-audit/shell.cjs
+```
+
+It checks 1440, 1280, 768, 390 and 375px in both themes, global link destinations,
+current-page state, minimum target heights, keyboard menu/focus behavior, theme
+persistence, resize dismissal, overflow and embed isolation. Screenshots and
+`shell-results.json` are written to `artifacts/visual-rework/shell/`.
+
 ## Public images
 
-`public/logo.png` is the unchanged 1024×1024 master and header asset.
+`public/logo.png` is the unchanged 1024×1024 master. The masthead uses the existing
+`public/logo192.png` derivative at 38px desktop / 32px mobile.
 `public/logo192.png` and `public/logo512.png` contain the same artwork resized to
 their manifest dimensions. On macOS, regenerate them without redesigning the logo:
 
@@ -84,3 +95,42 @@ sips -z 512 512 public/logo.png --out public/logo512.png
 ```
 
 Keep `public/favicon.ico` and `public/bookmakers/`: HTML and runtime URLs use them.
+
+## Global shell parity — Priority 1
+
+Reference audited on 2026-10-01: `georgiosbalatzis/f1StoriesPage` commit
+`1d8d725c57b29763422b1a5b26ccdfbfa04419f6`, specifically
+[`partials/nav.html`](https://github.com/georgiosbalatzis/f1StoriesPage/blob/1d8d725c57b29763422b1a5b26ccdfbfa04419f6/partials/nav.html),
+[`partials/footer.html`](https://github.com/georgiosbalatzis/f1StoriesPage/blob/1d8d725c57b29763422b1a5b26ccdfbfa04419f6/partials/footer.html),
+[`styles/editorial.css`](https://github.com/georgiosbalatzis/f1StoriesPage/blob/1d8d725c57b29763422b1a5b26ccdfbfa04419f6/styles/editorial.css),
+and the shared-nav CSS/JS, live homepage and `/standings/`.
+
+The masthead follows the canonical seven-item order, with BetCast current.
+It is fixed, 75px desktop / 67px below 992px plus the bottom rule; shell gutters
+are 48/32/22px. Chart scroll offsets account for the fixed header. The product
+hero, charts, tables, calculations, data sources and content tokens are unchanged.
+The colophon follows the canonical brand/mission, section index, copyright,
+five social destinations and legal row. Source/README authorship is unchanged.
+
+Intentional adaptations:
+
+- No race countdown: BetCast has no race schedule service. The canonical countdown
+  owns schedule fetching, caching, country mappings, fallback calendar and timers;
+  importing that subsystem is outside this shell pass. No stale static race is shown.
+- No cookie-settings button: BetCast has no analytics/consent manager for it to
+  control. Both canonical legal destinations remain available.
+- BetCast links stay in the current tab because they point to this application;
+  YouTube and social destinations retain external-tab behavior and safe `rel` values.
+- The dark masthead uses the shared editorial/standings charcoal. The footer keeps
+  the homepage charcoal in dark mode. Surfaces are flat, using the existing fonts,
+  logo artwork and inline social/theme SVGs rather than loading the main site's CSS
+  or icon sprite at runtime.
+- `betcast_theme`, explicit URL themes, system preference and embed behavior are
+  preserved. Theme-key unification remains Priority 2.
+
+Validation: four Jest tests, ESLint, production build, ten shell viewport/theme
+checks, and the existing 52 chart / 78 viewport checks passed. The browser audit
+also covered live sheet data, filters, sorting, tooltips, CSV, sharing, embeds and
+retry. Main-site and BetCast header/menu/footer captures were visually compared.
+The existing Testing Library emits a React `act` deprecation warning; dependencies
+were not changed in this pass.

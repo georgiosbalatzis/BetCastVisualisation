@@ -57,7 +57,7 @@ const pause = ms => new Promise(r=>setTimeout(r,ms));
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
   for(let i=1;i<=6;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-i*35,y}]});await pause(30)}
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await pause(250);
-  result.flows.tableScroll=await wrap.evaluate(e=>e.scrollLeft);assert(result.flows.tableScroll>0);assert.equal(await page.$eval('#chart-select',e=>e.value),'dataTable');
+  result.flows.tableScroll=await wrap.evaluate(e=>({left:e.scrollLeft,overflows:e.scrollWidth>e.clientWidth}));if(result.flows.tableScroll.overflows)assert(result.flows.tableScroll.left>0);else assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.equal(await page.$eval('#chart-select',e=>e.value),'dataTable');
   await page.setViewport({width:1440,height:900});
   await page.focus('.data-table th');await page.keyboard.press('Enter');await page.waitForFunction(()=>document.querySelector('.data-table th').getAttribute('aria-sort')==='descending');await page.focus('.data-table th');await page.keyboard.press('Space');await page.waitForFunction(()=>document.querySelector('.data-table th').getAttribute('aria-sort')==='ascending');result.flows.sortKeyboard=true;
   await open('theme=dark');const focus=[];for(let i=0;i<16;i++){await page.keyboard.press('Tab');focus.push(await page.evaluate(()=>({tag:document.activeElement.tagName,text:(document.activeElement.textContent||'').trim().slice(0,45),outline:getComputedStyle(document.activeElement).outlineStyle})));}result.flows.keyboard=focus;
