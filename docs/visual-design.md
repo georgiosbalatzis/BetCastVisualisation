@@ -79,8 +79,14 @@ PUPPETEER_MODULE=/path/to/node_modules/puppeteer-core node scripts/visual-audit/
 
 It checks 1440, 1280, 768, 390 and 375px in both themes, global link destinations,
 current-page state, minimum target heights, keyboard menu/focus behavior, theme
-persistence, resize dismissal, overflow and embed isolation. Screenshots and
+persistence (`f1stories-theme`), resize dismissal, overflow and embed isolation. Screenshots and
 `shell-results.json` are written to `artifacts/visual-rework/shell/`.
+
+`scripts/visual-audit/theme.cjs` (same prerequisites and server) checks theme
+persistence end to end: first paint with app JS blocked, no body-class flip on
+load or reload, `betcast_theme` migration, values left by sibling apps, `?theme=`
+not being stored, keyboard toggling and live OS changes under `auto`. See
+`docs/theme.md`.
 
 ## Public images
 
@@ -129,8 +135,8 @@ Intentional adaptations:
   the homepage charcoal in dark mode. Surfaces are flat, using the existing fonts,
   logo artwork and inline social/theme SVGs rather than loading the main site's CSS
   or icon sprite at runtime.
-- `betcast_theme`, explicit URL themes, system preference and embed behavior are
-  preserved. Theme-key unification remains Priority 2.
+- Explicit URL themes, system preference and embed behavior are preserved. Theme
+  persistence now uses the shared `f1stories-theme` key; see `docs/theme.md`.
 
 Validation: five Jest tests, ESLint, production build, ten shell
 viewport/theme checks, and the existing 52 chart / 78 viewport checks passed. The browser audit

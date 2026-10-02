@@ -3,9 +3,17 @@ import React, { createContext, useContext, useState, useEffect, useLayoutEffect,
 /**
  * Theme mode can be 'dark', 'light', or 'auto' (follows OS preference).
  * The resolved boolean `isDark` tells components what's actually active.
+ *
+ * The preference is the F1Stories-wide `f1stories-theme` key (see docs/theme.md).
+ * The pre-paint script in public/index.html reads the same keys in the same
+ * order and migrates `betcast_theme`; keep the two in step.
  */
 
-const STORAGE_KEY = 'betcast_theme';
+export const THEME_STORAGE_KEY = 'f1stories-theme';
+// Pre-F1Stories key: read only as a fallback, never written.
+export const LEGACY_THEME_STORAGE_KEY = 'betcast_theme';
+
+const isMode = (value) => value === 'dark' || value === 'light' || value === 'auto';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -15,15 +23,25 @@ const STORAGE_KEY = 'betcast_theme';
 const getSystemPrefersDark = () =>
   window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? true;
 
-/** Read saved preference from localStorage, default to 'auto' */
+/** URL `?theme=` (this view only) → saved preference → legacy key (if migration could not write) → 'auto' */
 const getSavedMode = () => {
   const requested = new URLSearchParams(window.location.search).get('theme');
   if (requested === 'dark' || requested === 'light') return requested;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'dark' || saved === 'light' || saved === 'auto') return saved;
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (isMode(saved)) return saved;
+    const legacy = localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+    if (isMode(legacy)) return legacy;
   } catch { /* localStorage unavailable */ }
   return 'auto';
+};
+
+/** Store an explicit choice; the legacy key goes only once the shared key is written */
+const saveMode = (mode) => {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, mode);
+    localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
+  } catch { /* localStorage unavailable */ }
 };
 
 /** Apply the correct class to <body> */
@@ -60,11 +78,6 @@ export const ThemeProvider = ({ children }) => {
     applyBodyClass(isDark);
   }, [isDark]);
 
-  // ---- Persist preference ----
-  useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, mode); } catch {}
-  }, [mode]);
-
   // ---- Listen for OS preference changes ----
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
@@ -75,18 +88,15 @@ export const ThemeProvider = ({ children }) => {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // ---- Toggle from the currently resolved theme ----
-  const toggle = useCallback(() => {
-    setModeState((prev) => {
-      if (prev === 'auto') return systemDark ? 'light' : 'dark';
-      if (prev === 'dark') return 'light';
-      return 'dark';
-    });
-  }, [systemDark]);
-
+  // ---- Explicit choices are the only writes: never on load or from ?theme= ----
   const setMode = useCallback((m) => {
-    if (m === 'dark' || m === 'light' || m === 'auto') setModeState(m);
+    if (!isMode(m)) return;
+    saveMode(m);
+    setModeState(m);
   }, []);
+
+  // ---- Toggle from the currently resolved theme ----
+  const toggle = useCallback(() => setMode(isDark ? 'light' : 'dark'), [isDark, setMode]);
 
   return (
     <ThemeContext.Provider value={{ mode, isDark, toggle, setMode }}>

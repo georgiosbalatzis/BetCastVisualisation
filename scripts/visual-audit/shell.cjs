@@ -67,7 +67,7 @@ const expectedLinks = [
       }
       await page.click('.theme-toggle');
       assert.equal(await page.$eval('body', el => el.className), theme === 'light' ? 'dark-mode' : 'light-mode');
-      assert.equal(await page.evaluate(() => localStorage.getItem('betcast_theme')), theme === 'light' ? 'dark' : 'light');
+      assert.equal(await page.evaluate(() => localStorage.getItem('f1stories-theme')), theme === 'light' ? 'dark' : 'light');
       await page.click('.theme-toggle');
       await page.$eval('footer', el => el.scrollIntoView());
       await page.waitForFunction(() => document.querySelector('footer').getBoundingClientRect().bottom <= innerHeight + 1);

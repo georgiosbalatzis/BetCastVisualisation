@@ -90,17 +90,19 @@ test('mobile disclosure exposes the same links, closes on Escape and restores fo
   expect(menu).not.toBeVisible();
 });
 
-test('theme toggle preserves the BetCast persistence key and URL state', async () => {
+test('theme toggle writes only the shared F1Stories key and preserves URL state', async () => {
   window.history.replaceState(null, '', '/?theme=light&from=2&to=4&viz=dataTable');
+  localStorage.setItem('betcast_theme', 'light');
   render(<App />);
   await screen.findByText('BetCast content');
   expect(document.body).toHaveClass('light-mode');
+  expect(localStorage.getItem('f1stories-theme')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Σκούρο θέμα' }));
   expect(document.body).toHaveClass('dark-mode');
-  expect(localStorage.getItem('betcast_theme')).toBe('dark');
-  expect(localStorage.getItem('f1stories-theme')).toBeNull();
+  expect({ ...localStorage }).toEqual({ 'f1stories-theme': 'dark' });
   fireEvent.click(screen.getByRole('button', { name: 'Φωτεινό θέμα' }));
   expect(document.body).toHaveClass('light-mode');
+  expect({ ...localStorage }).toEqual({ 'f1stories-theme': 'light' });
   expect(window.location.search).toBe('?theme=light&from=2&to=4&viz=dataTable');
 });
 
