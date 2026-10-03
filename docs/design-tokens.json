@@ -1,0 +1,77 @@
+{
+  "provenance": {
+    "repository": "georgiosbalatzis/f1StoriesPage",
+    "source": "styles/editorial.css",
+    "contract": "docs/design-tokens.md",
+    "sourceManifest": "docs/design-tokens.json",
+    "synced": "2026-10-03",
+    "sourceHead": "2523a16a9de82d463428f4d9b46aeb226c840637",
+    "sourceState": "Priority 4A committed snapshot; source CSS and manifest match sourceHead",
+    "sha256": {
+      "styles/editorial.css": "f900e1bb30797c2e3904bc11fde7de15bd9f395a69b93e9b8791de6f5d19a5ef",
+      "docs/design-tokens.json": "bd2557ada2f78a79d8ebf897652276f57f40c9263c5f08df5b5f5cfc639f8b92"
+    }
+  },
+  "themes": {
+    "light": {
+      "--bg-base": "#f2eee4",
+      "--bg-surface": "#e9e3d6",
+      "--bg-surface-alt": "#dfd9ca",
+      "--text-primary": "#20251f",
+      "--text-secondary": "#5b6256",
+      "--border": "#c8c8b9",
+      "--accent": "#a82e1c",
+      "--signal": "#ed4c32",
+      "--accent-hover": "#8e281a",
+      "--accent-contrast": "#f2eee4"
+    },
+    "dark": {
+      "--bg-base": "#1b1a19",
+      "--bg-surface": "#242321",
+      "--bg-surface-alt": "#2e2c29",
+      "--text-primary": "#eee8db",
+      "--text-secondary": "#b6bbac",
+      "--border": "#4b5146",
+      "--accent": "#ff775f",
+      "--signal": "#ed4c32",
+      "--accent-hover": "#ff947f",
+      "--accent-contrast": "#20251f"
+    }
+  },
+  "shared": {
+    "--paper": "#e9e3d6",
+    "--ink": "#20251f",
+    "--text-inverse-secondary": "#c0bfb2",
+    "--border-inverse": "rgba(233, 227, 214, 0.18)",
+    "--radius-control": "2px",
+    "--paper-text-secondary": "#5b6256",
+    "--paper-accent": "#a82e1c",
+    "--paper-success": "#276846",
+    "--paper-error": "#ad322c"
+  },
+  "aliases": {
+    "--bg": "--bg-base",
+    "--surface": "--bg-surface",
+    "--surface-raised": "--bg-surface-alt",
+    "--text": "--text-primary",
+    "--text-muted": "--text-secondary",
+    "--grid": "--border",
+    "--radius": "--radius-control"
+  },
+  "data": {
+    "dark": {
+      "--chart-accent": "#ff826b",
+      "--chart-muted": "#bcb8b0",
+      "--chart-reference": "#eee7dc",
+      "--success": "#70bd91",
+      "--error": "#f17b75"
+    },
+    "light": {
+      "--chart-accent": "#a82e1c",
+      "--chart-muted": "#5b6256",
+      "--chart-reference": "#20251f",
+      "--success": "#276846",
+      "--error": "#ad322c"
+    }
+  }
+}

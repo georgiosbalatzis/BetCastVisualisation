@@ -10,11 +10,12 @@ BC-01–BC-16 critique; the historical reports remain available in Git history.
 ## Visual system
 
 - IBM Plex Sans for Greek interface text and numbers; Barlow Condensed for branding.
-- Dark page/surface: `#181a1c` / `#222426`; text/muted: `#eee7dc` / `#bcb8b0`;
-  accent: `#ff826b`.
+- Canonical dark page/surface: `#1b1a19` / `#242321`; text/muted: `#eee8db` / `#b6bbac`;
+  accent: `#ff775f`. See [token provenance and exceptions](design-tokens.md).
 - Light page/surface: `#f2eee4` / `#e9e3d6`; text/muted: `#20251f` / `#5b6256`;
   accent: `#a82e1c`.
-- Shared CSS variables also color Recharts. Preserve thin rules, restrained 2px
+- Generic chart chrome uses shared CSS variables; data-series inks have separate
+  semantic tokens. Preserve thin rules, restrained 2px
   control corners, tabular numbers, and 22/32/48px mobile/tablet/desktop gutters.
 - Budget and ROI lead the summary. A grouped native selector exposes 13 analysis
   views; sharing sits below the visualization and CSV belongs beside the table.
@@ -131,8 +132,8 @@ Intentional adaptations:
   control. Both canonical legal destinations remain available.
 - BetCast links stay in the current tab because they point to this application;
   YouTube and social destinations retain external-tab behavior and safe `rel` values.
-- The dark masthead uses the shared editorial/standings charcoal. The footer keeps
-  the homepage charcoal in dark mode. Surfaces are flat, using the existing fonts,
+- The dark masthead uses the canonical core surface. Priority 4B supersedes the
+  original dark-footer exception with canonical ink/paper. Surfaces are flat, using the existing fonts,
   logo artwork and inline social/theme SVGs rather than loading the main site's CSS
   or icon sprite at runtime.
 - Explicit URL themes, system preference and embed behavior are preserved. Theme

@@ -17,7 +17,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "check:tokens": "node scripts/check-tokens.cjs"
   },
   "eslintConfig": {
     "extends": [

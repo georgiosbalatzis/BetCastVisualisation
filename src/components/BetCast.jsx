@@ -14,10 +14,10 @@ import { useTheme } from '../context/ThemeContext';
 
 // Theme
 const CHART_COLORS = {
-  win: 'var(--success)', lose: 'var(--error)', neutral: 'var(--text-muted)',
-  profit: 'var(--success)', loss: 'var(--error)', budgetLine: 'var(--accent)',
-  darkGray: 'var(--text-muted)', labelColor: 'var(--text)', detailColor: 'var(--text-muted)',
-  referenceLine: 'var(--text)', rolling: 'var(--text-muted)', milestone: 'var(--accent)',
+  win: 'var(--success)', lose: 'var(--error)', neutral: 'var(--chart-muted)',
+  profit: 'var(--success)', loss: 'var(--error)', budgetLine: 'var(--chart-accent)',
+  darkGray: 'var(--chart-muted)', labelColor: 'var(--text)', detailColor: 'var(--text-muted)',
+  referenceLine: 'var(--chart-reference)', rolling: 'var(--chart-muted)', milestone: 'var(--chart-accent)',
 };
 
 const BOOKMAKER_ALIASES = {
