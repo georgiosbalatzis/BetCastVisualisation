@@ -72,6 +72,14 @@ on live sheet data, browser behavior, and clipboard permissions. Native sharing 
 tested with a stub, not an external recipient. Chromium emulation does not replace
 physical-device or cross-browser testing.
 
+Priority 5D adds `interactions.cjs before|after` and `interaction-flows.cjs` with
+the same prerequisites. The first captures six-width light/dark comparisons,
+actual visual/hit geometry, accessible names, focus/clipping and contrast. The
+second exercises transparent-area touch activation, keyboard order, clipboard
+focus, native disabled pagination, CSV and retry. See the
+[Priority 5D report](priority-5d-interactions.md) for measurements and invocation.
+Evidence is written to ignored `artifacts/visual-rework/interactions/`.
+
 The focused shell audit uses the same prerequisites and production server:
 
 ```sh

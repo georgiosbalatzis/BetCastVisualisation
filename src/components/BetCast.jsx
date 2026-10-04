@@ -171,8 +171,10 @@ const copyText = async (text) => {
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
+    const activeElement = document.activeElement;
+    let textarea;
     try {
-      const textarea = document.createElement('textarea');
+      textarea = document.createElement('textarea');
       textarea.value = text;
       textarea.setAttribute('readonly', '');
       textarea.style.position = 'absolute';
@@ -180,10 +182,12 @@ const copyText = async (text) => {
       document.body.appendChild(textarea);
       textarea.select();
       const copied = document.execCommand('copy');
-      document.body.removeChild(textarea);
       return copied;
     } catch {
       return false;
+    } finally {
+      textarea?.remove();
+      activeElement?.focus({ preventScroll: true });
     }
   }
 };
