@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import App from './App';
+import EmbedFrameBridge from './components/EmbedFrameBridge';
 
 jest.mock('./siteUrls', () => ({ siteUrl: (pathname) => pathname, betcastUrl: '/betcast/' }));
 
-jest.mock('./components/BetCast', () => () => <main><h1>BETCAST.</h1><p>BetCast content</p></main>);
+jest.mock('./components/BetCast', () => ({ embedded, articlePresentation }) => <main data-testid="betcast" data-embedded={String(embedded)} data-article={String(articlePresentation)}><h1>BETCAST.</h1><p>BetCast content</p></main>);
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/');
@@ -46,6 +47,45 @@ test('renders the canonical global shell with BetCast identity in the content', 
   expect(within(footer).getByRole('link', { name: 'Πολιτική Απορρήτου' })).toHaveAttribute('href', '/privacy/privacy.html');
   expect(within(footer).getByRole('link', { name: 'Όροι Χρήσης' })).toHaveAttribute('href', '/privacy/terms.html');
   expect(within(footer).getAllByRole('link', { name: /F1 Stories στο|Email στο/ })).toHaveLength(5);
+});
+
+test('opts into article presentation only for an embedded article URL', async () => {
+  window.history.replaceState(null, '', '/betcast/?embed=1&presentation=article');
+  render(<App />);
+  expect(await screen.findByTestId('betcast')).toHaveAttribute('data-embedded', 'true');
+  expect(screen.getByTestId('betcast')).toHaveAttribute('data-article', 'true');
+  expect(screen.queryByRole('navigation', { name: 'Κύρια πλοήγηση' })).not.toBeInTheDocument();
+});
+
+test('embed measurement wrapper reports intrinsic size and replies only to the approved parent handshake', () => {
+  const originalParent = window.parent;
+  const parent = { messages: [], postMessage(data, origin) { this.messages.push({ data, origin }); } };
+  Object.defineProperty(window, 'parent', { configurable: true, value: parent });
+  let pendingFrame;
+  const raf = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => { pendingFrame = callback; return 1; });
+  const view = render(<EmbedFrameBridge embedded><div>article content</div></EmbedFrameBridge>);
+  const wrapper = view.container.querySelector('.embed-content-root');
+  Object.defineProperty(wrapper, 'getBoundingClientRect', { value: () => ({ height: 432 }) });
+  act(() => pendingFrame());
+  expect(parent.messages.at(-1)).toEqual({ data: { type: 'betcast:resize', height: 432 }, origin: '*' });
+
+  const handshake = (source, origin, data) => {
+    const event = new MessageEvent('message', { data, origin });
+    Object.defineProperty(event, 'source', { value: source });
+    act(() => window.dispatchEvent(event));
+  };
+  handshake(parent, 'https://evil.example', { type: 'betcast:measure' });
+  handshake({}, 'https://f1stories.gr', { type: 'betcast:measure' });
+  expect(parent.messages).toHaveLength(1);
+  handshake(parent, 'https://f1stories.gr', { type: 'betcast:measure', extra: true });
+  expect(parent.messages).toHaveLength(1);
+  handshake(parent, 'https://f1stories.gr', { type: 'betcast:measure' });
+  act(() => pendingFrame());
+  expect(parent.messages.at(-1)).toEqual({ data: { type: 'betcast:resize', height: 432 }, origin: 'https://f1stories.gr' });
+
+  view.unmount();
+  raf.mockRestore();
+  Object.defineProperty(window, 'parent', { configurable: true, value: originalParent });
 });
 
 test('renders every F1Stories sponsor with a local image and safe external link', async () => {

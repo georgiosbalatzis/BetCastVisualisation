@@ -14,6 +14,7 @@
 # Local IDE configuration and generated visual audit evidence
 /.idea/
 /artifacts/visual-rework/
+/artifacts/article-snapshots/
 
 # Stale CRA output must not be copied into the source root
 /static/

@@ -29,8 +29,11 @@
       (function() {
         var KEY = 'f1stories-theme', LEGACY_KEY = 'betcast_theme';
         var valid = function(v) { return v === 'light' || v === 'dark' || v === 'auto'; };
-        var s = new URLSearchParams(window.location.search).get('theme');
-        if (s !== 'light' && s !== 'dark') s = null;
+        var params = new URLSearchParams(window.location.search);
+        var s = params.get('theme');
+        var hostTheme = s === 'host' && params.get('presentation') === 'article'
+          && ['1', 'true', 'yes', 'on'].indexOf(String(params.get('embed') || '').toLowerCase()) !== -1;
+        if (s !== 'light' && s !== 'dark' && !hostTheme) s = null;
         var stored = null;
         try {
           stored = localStorage.getItem(KEY);
@@ -41,7 +44,7 @@
           }
           if (legacy !== null) localStorage.removeItem(LEGACY_KEY);
         } catch(e) {}
-        s = s || (valid(stored) ? stored : 'auto');
+        s = (s === 'light' || s === 'dark') ? s : (valid(stored) ? stored : 'auto');
         var d = s === 'dark' || (s === 'auto' && (window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : true));
         document.body.classList.add(d ? 'dark-mode' : 'light-mode');
       })();

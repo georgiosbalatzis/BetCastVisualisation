@@ -19,7 +19,8 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "check:tokens": "node scripts/check-tokens.cjs",
-    "build:f1stories": "node scripts/build-f1stories.mjs"
+    "build:f1stories": "node scripts/build-f1stories.mjs",
+    "export:article-table": "node scripts/export-article-table.mjs"
   },
   "eslintConfig": {
     "extends": [

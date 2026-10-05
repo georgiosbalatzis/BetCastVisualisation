@@ -134,7 +134,6 @@ const AUTO_REFRESH_MS = 3 * 60 * 1000; // #13 — 3 min
 const EMBED_PARAM = 'embed';
 const DATA_SOURCE_PARAM = 'season';
 const EMBED_MIN_HEIGHT = 960;
-const EMBED_RESIZE_EVENT = 'betcast:resize';
 const EMBED_TITLE = 'BetCast F1 Stories';
 const DEFAULT_DATA_SOURCE = 'current';
 const DATA_SOURCE_OPTIONS = Object.values(DATA_SOURCES);
@@ -148,7 +147,7 @@ const getNumericParam = (params, key) => {
 
 const normaliseDataSourceId = (value) => DATA_SOURCES[value] ? value : DEFAULT_DATA_SOURCE;
 
-const buildShareUrl = ({ selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded = false, isDarkMode = true }) => {
+const buildShareUrl = ({ selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded = false, articlePresentation = false, themeMode = '', isDarkMode = true }) => {
   if (typeof window === 'undefined') return '';
   const params = new URLSearchParams();
   if (selectedViz !== 'budget') params.set('viz', selectedViz);
@@ -159,7 +158,8 @@ const buildShareUrl = ({ selectedViz, dataSource, weekFrom, weekTo, highlightedW
   if (cmpWeekA != null) params.set('cmpA', String(cmpWeekA));
   if (cmpWeekB != null) params.set('cmpB', String(cmpWeekB));
   if (embedded) params.set(EMBED_PARAM, '1');
-  if (embedded) params.set('theme', isDarkMode ? 'dark' : 'light');
+  if (embedded && articlePresentation) params.set('presentation', 'article');
+  if (embedded) params.set('theme', articlePresentation && themeMode === 'host' ? 'host' : isDarkMode ? 'dark' : 'light');
   const queryString = params.toString();
   return `${window.location.origin}${window.location.pathname}${queryString ? `?${queryString}` : ''}`;
 };
@@ -193,7 +193,7 @@ const copyText = async (text) => {
 };
 
 // ============================================================================
-const BettingVisualizations = ({ embedded = false }) => {
+const BettingVisualizations = ({ embedded = false, articlePresentation = false }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bettingData, setBettingData] = useState([]);
@@ -201,6 +201,14 @@ const BettingVisualizations = ({ embedded = false }) => {
   const [dataSource, setDataSource] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_DATA_SOURCE;
     return normaliseDataSourceId(new URLSearchParams(window.location.search).get(DATA_SOURCE_PARAM));
+  });
+  const [presentation, setPresentation] = useState(() => {
+    if (typeof window === 'undefined') return 'dashboard';
+    return new URLSearchParams(window.location.search).get('presentation') === 'article' ? 'article' : 'dashboard';
+  });
+  const [themeMode, setThemeMode] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('theme') || '';
   });
   const [activeIndex, setActiveIndex] = useState(0);
   const [weekFrom, setWeekFrom] = useState(null);
@@ -215,13 +223,12 @@ const BettingVisualizations = ({ embedded = false }) => {
   const [cmpWeekB, setCmpWeekB] = useState(null);
   const [shareFeedback, setShareFeedback] = useState('');
 
-  const mainContentRef = useRef(null);
   const chartRef = useRef(null); // #8 scroll target
   const [urlStateInitialized, setUrlStateInitialized] = useState(false);
   const touchStartX = useRef(null); // #10 swipe
-  const lastPostedHeightRef = useRef(0);
 
   const { isDark: isDarkMode } = useTheme();
+  const isArticlePresentation = embedded && (articlePresentation || presentation === 'article');
   const C = CHART_COLORS;
   const [reduceMotion, setReduceMotion] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
   useEffect(() => {
@@ -313,6 +320,8 @@ const BettingVisualizations = ({ embedded = false }) => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedViz = params.get('viz');
+    setPresentation(params.get('presentation') === 'article' ? 'article' : 'dashboard');
+    setThemeMode(params.get('theme') || '');
     if (requestedViz && VIZ_OPTIONS.some((option) => option.id === requestedViz)) setSelectedViz(requestedViz);
     setDataSource(normaliseDataSourceId(params.get(DATA_SOURCE_PARAM)));
     setWeekFrom(getNumericParam(params, 'from'));
@@ -334,10 +343,14 @@ const BettingVisualizations = ({ embedded = false }) => {
     if (highlightedWeek != null) params.set('week', String(highlightedWeek));
     if (cmpWeekA != null) params.set('cmpA', String(cmpWeekA));
     if (cmpWeekB != null) params.set('cmpB', String(cmpWeekB));
-    if (embedded) { params.set(EMBED_PARAM, '1'); params.set('theme', isDarkMode ? 'dark' : 'light'); }
+    if (embedded) {
+      params.set(EMBED_PARAM, '1');
+      if (isArticlePresentation) params.set('presentation', 'article');
+      params.set('theme', isArticlePresentation && themeMode === 'host' ? 'host' : isDarkMode ? 'dark' : 'light');
+    }
     const queryString = params.toString();
     window.history.replaceState(null, '', `${window.location.pathname}${queryString ? `?${queryString}` : ''}`);
-  }, [selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded, urlStateInitialized, isDarkMode]);
+  }, [selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded, isArticlePresentation, themeMode, urlStateInitialized, isDarkMode]);
 
   useEffect(() => {
     if (!shareFeedback) return undefined;
@@ -374,7 +387,7 @@ const BettingVisualizations = ({ embedded = false }) => {
   }, [embedded, reduceMotion]);
 
   // #10 — Swipe gestures
-  const onTouchStart = useCallback((e) => { touchStartX.current = e.target.closest?.('.data-table-wrap, select, button, input') ? null : e.touches[0].clientX; }, []);
+  const onTouchStart = useCallback((e) => { touchStartX.current = isArticlePresentation || e.target.closest?.('.data-table-wrap, select, button, input') ? null : e.touches[0].clientX; }, [isArticlePresentation]);
   const onTouchEnd = useCallback((e) => {
     if (e.target.closest?.('.data-table-wrap')) { touchStartX.current = null; return; }
     if (touchStartX.current == null) return;
@@ -404,10 +417,12 @@ const BettingVisualizations = ({ embedded = false }) => {
 
   // Last updated
   const lastUpdated = useMemo(() => { if (!lastFetched) return null; const m = Math.floor((Date.now() - lastFetched) / 60000); if (m < 1) return 'μόλις τώρα'; return `πριν ${m} λεπτά`; }, [lastFetched]);
-  const shareContext = useMemo(() => ({ selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, isDarkMode }), [selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, isDarkMode]);
+  const shareContext = useMemo(() => ({ selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, articlePresentation: isArticlePresentation, themeMode, isDarkMode }), [selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, isArticlePresentation, themeMode, isDarkMode]);
   const fullAppUrl = useMemo(() => buildShareUrl({ ...shareContext, embedded: false }), [shareContext]);
   const embedUrl = useMemo(() => buildShareUrl({ ...shareContext, embedded: true }), [shareContext]);
   const embedSnippet = useMemo(() => buildEmbedSnippet(embedUrl), [embedUrl]);
+  const articleEmbedUrl = useMemo(() => buildShareUrl({ ...shareContext, embedded: true, articlePresentation: true, themeMode: 'host' }), [shareContext]);
+  const articleEmbedSnippet = useMemo(() => buildEmbedSnippet(articleEmbedUrl), [articleEmbedUrl]);
 
   const handleCopyLink = useCallback(async () => {
     const copied = await copyText(fullAppUrl);
@@ -416,8 +431,13 @@ const BettingVisualizations = ({ embedded = false }) => {
 
   const handleCopyEmbed = useCallback(async () => {
     const copied = await copyText(embedSnippet);
-    setShareFeedback(copied ? 'Το iframe code αντιγράφηκε.' : 'Δεν ήταν δυνατή η αντιγραφή του iframe code.');
+    setShareFeedback(copied ? 'Το σταθερού ύψους iframe code αντιγράφηκε.' : 'Δεν ήταν δυνατή η αντιγραφή του iframe code.');
   }, [embedSnippet]);
+
+  const handleCopyArticleEmbed = useCallback(async () => {
+    const copied = await copyText(articleEmbedSnippet);
+    setShareFeedback(copied ? 'Το article iframe code αντιγράφηκε. Το F1 Stories ρυθμίζει αυτόματα ύψος και θέμα.' : 'Δεν ήταν δυνατή η αντιγραφή του iframe code.');
+  }, [articleEmbedSnippet]);
 
   const handleShare = useCallback(async () => {
     try {
@@ -432,26 +452,6 @@ const BettingVisualizations = ({ embedded = false }) => {
       setShareFeedback('Δεν ήταν δυνατή η κοινοποίηση του link.');
     }
   }, [fullAppUrl]);
-
-  useEffect(() => {
-    if (!embedded || window.parent === window || !mainContentRef.current) return undefined;
-
-    const postHeight = () => {
-      const height = Math.ceil(mainContentRef.current?.getBoundingClientRect().height ?? 0);
-      if (height > 0 && height !== lastPostedHeightRef.current) {
-        lastPostedHeightRef.current = height;
-        window.parent.postMessage({ type: EMBED_RESIZE_EVENT, height }, '*');
-      }
-    };
-
-    const postHeightSoon = () => window.requestAnimationFrame(postHeight);
-    postHeightSoon();
-
-    if (typeof ResizeObserver === 'undefined') return undefined;
-    const observer = new ResizeObserver(postHeightSoon);
-    observer.observe(mainContentRef.current);
-    return () => observer.disconnect();
-  }, [embedded, loading, error, selectedViz, dataSource, tablePage, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, hasData]);
 
   // =========================================================================
   // Chart renderers
@@ -502,7 +502,7 @@ const BettingVisualizations = ({ embedded = false }) => {
         <h3 className="card-chart-title" style={{ marginBottom: 0 }}>Πίνακας</h3>
         <button className="export-btn" onClick={() => exportCSV(sortedTable, `betcast_${dataSource}_export.csv`)}><UiIcon name="download" /> CSV</button>
       </div>
-      <div className="filter-bar table-filter-bar">
+      {!isArticlePresentation && <div className="filter-bar table-filter-bar">
         <label htmlFor="table-week-filter">Φίλτρο εβδομάδας</label>
         <select
           id="table-week-filter"
@@ -519,7 +519,7 @@ const BettingVisualizations = ({ embedded = false }) => {
           <button className="filter-reset-btn" onClick={() => startTransition(() => { setHighlightedWeek(null); setTablePage(0); })} aria-label="Καθαρισμός επιλογής">×</button>
         )}
         <span className="table-filter-count">{sortedTable.length} στοιχήματα</span>
-      </div>
+      </div>}
       <div className="data-table-wrap">
         <p className="table-scroll-hint">Κύλιση για όλα τα στοιχεία</p>
         <table className="data-table data-table--desktop">
@@ -591,6 +591,14 @@ const BettingVisualizations = ({ embedded = false }) => {
     { name: 'Σύγκριση & στοιχεία', ids: ['compareWeeks', 'dataTable'] },
   ];
 
+  if (loading && isArticlePresentation) return (
+    <main className="main-content main-content--article-presentation" aria-busy="true">
+      <header className="article-presentation__header"><p className="article-presentation__brand">BETCAST <span aria-hidden="true">·</span> F1 STORIES</p><h1>{selectedOption?.name || 'Ανάλυση στοιχημάτων'}</h1><p className="article-presentation__scope">{DATA_SOURCES[dataSource]?.label || dataSource}{weekFrom != null || weekTo != null ? ` · Εβδ. ${weekFrom ?? 1}–${weekTo ?? allWeeks[allWeeks.length - 1] ?? ''}` : highlightedWeek != null ? ` · Εβδ. ${highlightedWeek}` : ' · Όλες οι εβδομάδες'}</p></header>
+      <p role="status" className="state-copy">Φόρτωση στοιχημάτων…</p><div className="skeleton skeleton-chart" />
+      <footer className="article-presentation__footer"><a href={fullAppUrl} target="_blank" rel="noopener noreferrer">Άνοιγμα BetCast ↗</a></footer>
+    </main>
+  );
+
   if (loading) return (
     <main className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`} aria-busy="true">
       <div className="page-toolbar"><div className="page-toolbar__heading"><h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1><p className="page-intro">Στοιχηματική ανάλυση. Κάθε επιλογή, κάθε εβδομάδα.</p></div></div>
@@ -600,8 +608,35 @@ const BettingVisualizations = ({ embedded = false }) => {
     </main>
   );
 
+  if (isArticlePresentation) {
+    const scopeParts = [DATA_SOURCES[dataSource]?.label || dataSource];
+    if (weekFrom != null || weekTo != null) scopeParts.push(weekFrom != null && weekTo != null ? `Εβδ. ${weekFrom}–${weekTo}` : weekFrom != null ? `Από εβδ. ${weekFrom}` : `Έως εβδ. ${weekTo}`);
+    if (highlightedWeek != null) scopeParts.push(`Εβδ. ${highlightedWeek}`);
+    if (weekFrom == null && weekTo == null && highlightedWeek == null) scopeParts.push('Όλες οι εβδομάδες');
+    return (
+      <main id="main" className="main-content main-content--article-presentation">
+        <header className="article-presentation__header">
+          <p className="article-presentation__brand">BETCAST <span aria-hidden="true">·</span> F1 STORIES</p>
+          <h1>{selectedOption?.name || 'Ανάλυση στοιχημάτων'}</h1>
+          <p className="article-presentation__scope">{scopeParts.join(' · ')}</p>
+        </header>
+        {error && <div className="error-banner" role="alert"><strong>Τα δεδομένα δεν φορτώθηκαν.</strong><p>{error}</p><button className="export-btn" onClick={handleRetry}>Επανάληψη</button></div>}
+        <section ref={chartRef} className="article-presentation__content" aria-label={`${selectedOption?.name || 'Ανάλυση'} · ${scopeParts.join(' · ')}`}>
+          {error ? <div className="empty-state" role="status"><p>Η ανάλυση δεν είναι διαθέσιμη αυτή τη στιγμή.</p></div>
+            : !hasData ? <div className="empty-state" role="status"><h2>Δεν βρέθηκαν στοιχήματα.</h2><p>Δεν υπάρχουν δεδομένα για το σταθερό εύρος αυτής της ανάλυσης.</p></div>
+              : <div className="chart-panel" role="region" aria-label={selectedOption?.name}>{RENDERERS[selectedViz]?.()}</div>}
+        </section>
+        {hasData && !error && <p className="chart-caption">{chartNotes[selectedViz]}</p>}
+        <footer className="article-presentation__footer">
+          <p className="last-updated">{lastUpdated ? `Τελευταία ενημέρωση: ${lastUpdated}` : 'Αναμονή ενημέρωσης δεδομένων'}</p>
+          <a className="text-action" href={fullAppUrl} target="_blank" rel="noopener noreferrer">Άνοιγμα BetCast ↗</a>
+        </footer>
+      </main>
+    );
+  }
+
   return (
-    <main id="main" ref={mainContentRef} className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`}>
+    <main id="main" className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`}>
       <div className="page-toolbar">
         <div className="page-toolbar__heading">
           <h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1>
@@ -663,7 +698,8 @@ const BettingVisualizations = ({ embedded = false }) => {
           {!embedded ? <div className="toolbar-share-group" aria-label="Κοινοποίηση ανάλυσης">
             <button className="text-action" onClick={handleShare}>Κοινοποίηση</button>
             <button className="text-action" onClick={handleCopyLink}>Link</button>
-            <button className="text-action" onClick={handleCopyEmbed}>Embed</button>
+            <button className="text-action" onClick={handleCopyEmbed}>Iframe</button>
+            <button className="text-action" onClick={handleCopyArticleEmbed}>Embed άρθρου</button>
           </div> : <a className="text-action" href={fullAppUrl} target="_blank" rel="noopener noreferrer">Άνοιγμα BetCast ↗</a>}
         </div>
         {shareFeedback && <p className="share-feedback" role="status">{shareFeedback}</p>}

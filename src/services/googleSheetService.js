@@ -3,156 +3,17 @@
  * FIXED: Correct sheet ID, fast CORS strategy, empty row filtering.
  */
 
-// ===========================================================================
-// Column mapping — matches YOUR actual sheet headers
-// ===========================================================================
-const COLUMN_MAP = {
-  'Εβδομάδα': 'week',
-  'Ημερομηνίες': 'dateRange',
-  'Στοίχημα #': 'betNumber',
-  'Τύπος Στοιχήματος': 'betType',
-  'Τυπος Στοιχηματος': 'betType',
-  'Εταιρία': 'company',
-  'Εταιρια': 'company',
-  'Ποντάρισμα': 'stake',
-  'Απόδοση': 'odds',
-  'Αποτέλεσμα': 'result',
-  'Κέρδος/Ζημιά': 'profitLoss',
-  '✓ / ✗': 'symbol',
-  'Σωρευτικό Budget': 'cumulativeBudget',
-  'ROI %': 'rowROI',
-  'Συνολικο ROI %': 'cumulativeROIRaw',
-  // English fallbacks
-  'Week': 'week', 'Date Range': 'dateRange', 'Stake': 'stake', 'odd': 'odds',
-  'Bet Type': 'betType', 'Company': 'company',
-  'Win / Lose': 'result', 'Profit / Loss': 'profitLoss',
-  'Symbol (Win / Loss)': 'symbol', 'Cumulative Budget': 'cumulativeBudget',
-};
+import {
+  DATA_SOURCES,
+  normalizeBettingCSV,
+  safeNumber,
+} from './bettingDataCore.mjs';
 
-const COMPANY_ALIASES = {
-  stoiximan: 'stoiximan',
-  interwetten: 'interwetten',
-  intervetten: 'interwetten',
-  bwin: 'bwin',
-  bet365: 'bet365',
-  novibet: 'novibet',
-};
-
-// ===========================================================================
-// Numeric helpers
-// ===========================================================================
-const toNumber = (raw) => {
-  if (typeof raw === 'number') return raw;
-  if (typeof raw !== 'string') return NaN;
-  // Strip €, spaces, non-breaking spaces, then swap comma for dot
-  return parseFloat(raw.replace(/[€\s\u00A0]/g, '').replace(',', '.'));
-};
-export const safeNumber = (v) => { const n = toNumber(v); return isNaN(n) ? 0 : n; };
-
-const normaliseCompany = (raw) => {
-  if (raw == null) return '';
-  const trimmed = String(raw).trim();
-  if (!trimmed) return '';
-  const compact = trimmed.toLowerCase().replace(/\s+/g, '');
-  return COMPANY_ALIASES[compact] || trimmed;
-};
-
-// ===========================================================================
-// CSV Parsing
-// ===========================================================================
-const parseCSVText = async (csvText) => {
-  return fallbackParseCSV(csvText);
-};
-
-const fallbackParseCSV = (csvText) => {
-  const rows = [], lines = csvText.trim().split('\n');
-  if (!lines.length) return rows;
-  const headers = splitCSVLine(lines[0]);
-  for (let i = 1; i < lines.length; i++) {
-    const vals = splitCSVLine(lines[i]);
-    if (vals.length !== headers.length) continue;
-    const row = {};
-    headers.forEach((h, j) => { row[h] = vals[j]; });
-    rows.push(row);
-  }
-  return rows;
-};
-
-const splitCSVLine = (line) => {
-  const vals = []; let cur = '', inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (inQ) {
-      if (c === '"') {
-        if (i + 1 < line.length && line[i + 1] === '"') { cur += '"'; i++; }
-        else inQ = false;
-      } else cur += c;
-    } else {
-      if (c === '"') inQ = true;
-      else if (c === ',') { vals.push(cur.trim()); cur = ''; }
-      else cur += c;
-    }
-  }
-  vals.push(cur.trim());
-  return vals;
-};
-
-// ===========================================================================
-// Row normalisation + empty row filter
-// ===========================================================================
-const normaliseRow = (raw, id) => {
-  const row = { id };
-  for (const [h, v] of Object.entries(raw)) row[COLUMN_MAP[h] || h] = v;
-  row.week = safeNumber(row.week);
-  row.stake = safeNumber(row.stake);
-  row.odds = safeNumber(row.odds);
-  row.profitLoss = safeNumber(row.profitLoss);
-  row.cumulativeBudget = safeNumber(row.cumulativeBudget);
-  row.betType = row.betType || '';
-  row.company = normaliseCompany(row.company);
-  if (row.betNumber != null && typeof row.betNumber === 'string') {
-    // betNumber in your sheet is a description like "Lewis - Τοπ 3", keep as string
-    row.betLabel = row.betNumber;
-    row.betNumber = null; // will be assigned sequentially later
-  }
-  return row;
-};
-
-/**
- * Filter out empty/placeholder rows.
- * Your sheet has formula rows that show Win/Lose and €0 even when no bet exists.
- * A real bet must have: week > 0 AND stake > 0 AND odds > 0
- */
-const isRealBet = (row) => row.week > 0 && row.stake > 0 && row.odds > 0;
-
-const assignBetNumbers = (data) => {
-  let cw = null, cnt = 0;
-  for (const b of data) {
-    if (b.week !== cw) { cw = b.week; cnt = 0; }
-    cnt++;
-    if (!b.betNumber) b.betNumber = cnt;
-  }
-};
+export { DATA_SOURCES, normalizeBettingCSV, safeNumber };
 
 // ===========================================================================
 // CORS + Fetch — FAST strategy
 // ===========================================================================
-
-export const DATA_SOURCES = {
-  current: {
-    id: 'current',
-    label: 'Φέτος',
-    sheetId: '16cz7p-hZIs3PrvhL9JJ1q1tqyVEupXQ2k8kN8F9mexc',
-    gid: '796888004',
-    allowSampleFallback: true,
-  },
-  lastYear: {
-    id: 'lastYear',
-    label: 'Πέρσι',
-    sheetId: '1nMytseR9C-GJNri0n5DAW25jijullNMVUcTj1mLEEYs',
-    allowSampleFallback: false,
-  },
-};
 
 const DEFAULT_DATA_SOURCE_ID = 'current';
 
@@ -293,29 +154,15 @@ const fetchFreshData = async (sourceId = DEFAULT_DATA_SOURCE_ID) => {
   const inFlightFreshDataPromise = (async () => {
     try {
       const csvText = await fetchCSV(source);
-      const rawRows = await parseCSVText(csvText);
-
-      if (!rawRows.length) throw new Error('No data rows in CSV');
-
-      // Normalise all rows
-      const allRows = rawRows.map((r, i) => normaliseRow(r, i + 1));
-
-      // CRITICAL: Filter out empty/placeholder rows
-      const data = allRows.filter(isRealBet);
+      const data = normalizeBettingCSV(csvText);
 
       if (!data.length) throw new Error('No real bets found after filtering');
-
-      // Re-assign sequential IDs after filtering
-      data.forEach((b, i) => { b.id = i + 1; });
-
-      // Assign bet numbers per week
-      assignBetNumbers(data);
 
       // Cache
       writeCache(data, source.id);
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Loaded ${data.length} real bets from ${source.label} (filtered from ${allRows.length} rows)`);
+        console.log(`Loaded ${data.length} real bets from ${source.label}`);
         console.log('First bet:', data[0]);
       }
 

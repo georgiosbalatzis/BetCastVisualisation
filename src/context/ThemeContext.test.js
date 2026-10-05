@@ -153,6 +153,41 @@ test('?theme= overrides this view only and is never stored', () => {
   expect(storageSnapshot()).toEqual({ [KEY]: 'auto' });
 });
 
+test('theme=host article embeds use the saved fallback, then accept a validated parent theme without storage writes', () => {
+  const search = '?embed=1&presentation=article&theme=host';
+  expect(runScript({ stored: { [KEY]: 'light' }, search, osDark: true })).toEqual({ body: 'light-mode', storage: { [KEY]: 'light' } });
+  expect(runScript({ search: '?theme=host', osDark: true })).toEqual({ body: 'dark-mode', storage: {} });
+
+  const originalParent = window.parent;
+  const parent = {};
+  Object.defineProperty(window, 'parent', { configurable: true, value: parent });
+  try {
+    const view = renderProvider({ stored: { [KEY]: 'light' }, search, osDark: true });
+    const dispatch = (origin, data, source = parent) => {
+      const event = new MessageEvent('message', { data, origin });
+      Object.defineProperty(event, 'source', { value: source });
+      act(() => window.dispatchEvent(event));
+    };
+    dispatch('https://evil.example', { type: 'betcast:theme', theme: 'dark' });
+    expect(view.resolved()).toBe('light');
+    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark', extra: true });
+    expect(view.resolved()).toBe('light');
+    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark' }, {});
+    expect(view.resolved()).toBe('light');
+    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark' });
+    expect(view.resolved()).toBe('dark');
+    expect(storageSnapshot()).toEqual({ [KEY]: 'light' });
+    view.unmount();
+
+    const explicit = renderProvider({ search: '?embed=1&presentation=article&theme=light', osDark: true });
+    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark' });
+    expect(explicit.resolved()).toBe('light');
+    explicit.unmount();
+  } finally {
+    Object.defineProperty(window, 'parent', { configurable: true, value: originalParent });
+  }
+});
+
 test('auto stays stored as auto while the OS preference changes live', () => {
   const view = renderProvider({ stored: { [KEY]: 'auto' }, osDark: true });
   expect(view.resolved()).toBe('dark');

@@ -36,6 +36,15 @@ const getSavedMode = () => {
   return 'auto';
 };
 
+const isHostThemeRequest = () => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('theme') === 'host'
+    && params.get('presentation') === 'article'
+    && ['1', 'true', 'yes', 'on'].includes(String(params.get('embed') || '').toLowerCase());
+};
+
+const isApprovedArticleOrigin = (origin) => origin === 'https://f1stories.gr' || origin === 'https://www.f1stories.gr';
+
 /** Store an explicit choice; the legacy key goes only once the shared key is written */
 const saveMode = (mode) => {
   try {
@@ -70,8 +79,12 @@ export const useTheme = () => useContext(ThemeContext);
 export const ThemeProvider = ({ children }) => {
   const [mode, setModeState] = useState(getSavedMode);
   const [systemDark, setSystemDark] = useState(getSystemPrefersDark);
+  const [hostTheme, setHostTheme] = useState(null);
+  const hostThemeRequested = isHostThemeRequest();
 
-  const isDark = mode === 'auto' ? systemDark : mode === 'dark';
+  const isDark = hostThemeRequested && hostTheme
+    ? hostTheme === 'dark'
+    : mode === 'auto' ? systemDark : mode === 'dark';
 
   // ---- Apply before paint so the initial theme matches the OS/user preference ----
   useLayoutEffect(() => {
@@ -87,6 +100,22 @@ export const ThemeProvider = ({ children }) => {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  // Host-controlled article frames accept only a small parent-origin message.
+  // The incoming preference stays in memory and never touches shared storage.
+  useEffect(() => {
+    if (!hostThemeRequested || window.parent === window) return undefined;
+    const onMessage = (event) => {
+      if (event.source !== window.parent || !isApprovedArticleOrigin(event.origin)) return;
+      const data = event.data;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) return;
+      const keys = Object.keys(data).sort().join(',');
+      if (data.type !== 'betcast:theme' || keys !== 'theme,type' || !['light', 'dark'].includes(data.theme)) return;
+      setHostTheme(data.theme);
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [hostThemeRequested]);
 
   // ---- Explicit choices are the only writes: never on load or from ?theme= ----
   const setMode = useCallback((m) => {

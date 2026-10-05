@@ -25,17 +25,19 @@ Design constraints and optional browser audit tools are documented in
 
 ## Embedding
 
-The dashboard now supports an embed mode that keeps the selected chart and filters in the URL.
+The dashboard supports a full dashboard embed and an opt-in article presentation. Both keep the selected view and fixed filters in the URL.
 
-- Add `?embed=1` to switch to the compact embedded layout.
+- Add `?embed=1` to keep the legacy embedded dashboard, including its existing controls.
+- Add `?embed=1&presentation=article` for a compact article block with one selected view, its fixed season/week scope, freshness state, and a link to the matching full app.
 - Existing deep-link params such as `viz`, `from`, `to`, `week`, `cmpA`, and `cmpB` are preserved in embed URLs.
+- Embed snippets copied from article presentation retain `presentation=article`; full-app share links remove embed-only parameters.
 - The app posts `{ type: 'betcast:resize', height }` to the parent window so a host page can resize the iframe dynamically.
 
 Example:
 
 ```html
 <iframe
-  src="https://georgiosbalatzis.github.io/BetCastVisualisation/?embed=1&viz=budget"
+  src="https://georgiosbalatzis.github.io/BetCastVisualisation/?embed=1&presentation=article&viz=budget"
   title="BetCast F1Stories"
   loading="lazy"
   style="width:100%;min-height:960px;border:0;"
