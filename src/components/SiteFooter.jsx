@@ -1,3 +1,4 @@
+import { siteUrl, betcastUrl } from '../siteUrls';
 import React from 'react';
 
 const SocialIcon = ({ href, label, children }) => (
@@ -12,15 +13,15 @@ export default function SiteFooter() {
       <div className="container">
         <div className="footer-body">
           <div className="footer-colophon">
-            <a className="footer-wordmark" href="https://f1stories.gr/" aria-label="F1 Stories, αρχική σελίδα">F1 STORIES<span className="footer-dot">.</span></a>
+            <a className="footer-wordmark" href={siteUrl('/')} aria-label="F1 Stories, αρχική σελίδα">F1 STORIES<span className="footer-dot">.</span></a>
             <p className="footer-mission">Τεχνική ανάλυση, άποψη και ελληνική F1 κοινότητα.</p>
           </div>
           <nav className="footer-index" aria-label="Ενότητες">
-            <a href="https://f1stories.gr/blog-module/blog/index.html">Άρθρα</a>
-            <a href="https://f1stories.gr/standings/">Βαθμολογία</a>
-            <a href="https://f1stories.gr/authors/">Συντάκτες</a>
+            <a href={siteUrl('/blog-module/blog/index.html')}>Άρθρα</a>
+            <a href={siteUrl('/standings/')}>Βαθμολογία</a>
+            <a href={siteUrl('/authors/')}>Συντάκτες</a>
             <a href="https://www.youtube.com/@f1_stories_original" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
-            <a href="https://georgiosbalatzis.github.io/BetCastVisualisation/" aria-current="page">BetCast</a>
+            <a href={betcastUrl} aria-current="page">BetCast</a>
           </nav>
           <p>© {new Date().getFullYear()} F1 Stories. Με επιφύλαξη παντός δικαιώματος.</p>
           <div className="social-media">
@@ -41,9 +42,9 @@ export default function SiteFooter() {
             </SocialIcon>
           </div>
           <div className="footer-links">
-            <a href="https://f1stories.gr/privacy/privacy.html">Πολιτική Απορρήτου</a>
+            <a href={siteUrl('/privacy/privacy.html')}>Πολιτική Απορρήτου</a>
             <span className="footer-separator" aria-hidden="true">|</span>
-            <a href="https://f1stories.gr/privacy/terms.html">Όροι Χρήσης</a>
+            <a href={siteUrl('/privacy/terms.html')}>Όροι Χρήσης</a>
           </div>
         </div>
       </div>

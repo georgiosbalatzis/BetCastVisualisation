@@ -1,5 +1,7 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import App from './App';
+
+jest.mock('./siteUrls', () => ({ siteUrl: (pathname) => pathname, betcastUrl: '/betcast/' }));
 
 jest.mock('./components/BetCast', () => () => <main><h1>BETCAST.</h1><p>BetCast content</p></main>);
 
@@ -9,13 +11,13 @@ beforeEach(() => {
 });
 
 const navigation = [
-  ['Αρχική', 'https://f1stories.gr/'],
-  ['Άρθρα', 'https://f1stories.gr/blog-module/blog/index.html'],
+  ['Αρχική', '/'],
+  ['Άρθρα', '/blog-module/blog/index.html'],
   ['YouTube', 'https://www.youtube.com/@f1_stories_original'],
-  ['Βαθμολογία', 'https://f1stories.gr/standings/'],
-  ['Δεδομένα', 'https://f1stories.gr/standings/?tab=tyre-pace'],
-  ['Συντάκτες', 'https://f1stories.gr/authors/'],
-  ['BetCast', 'https://georgiosbalatzis.github.io/BetCastVisualisation/'],
+  ['Βαθμολογία', '/standings/'],
+  ['Δεδομένα', '/standings/?tab=tyre-pace'],
+  ['Συντάκτες', '/authors/'],
+  ['BetCast', '/betcast/'],
 ];
 
 function expectCanonicalNavigation(nav) {
@@ -32,7 +34,7 @@ test('renders the canonical global shell with BetCast identity in the content', 
   render(<App />);
   expect(await screen.findByText('BetCast content')).toBeInTheDocument();
   const header = screen.getByRole('banner');
-  expect(within(header).getByRole('link', { name: 'F1 Stories — Αρχική' })).toHaveAttribute('href', 'https://f1stories.gr/');
+  expect(within(header).getByRole('link', { name: 'F1 Stories — Αρχική' })).toHaveAttribute('href', '/');
   expect(header).not.toHaveTextContent('BETCAST');
   expect(header).not.toHaveTextContent('Data Hub');
   expectCanonicalNavigation(screen.getByRole('navigation', { name: 'Κύρια πλοήγηση' }));
@@ -41,8 +43,8 @@ test('renders the canonical global shell with BetCast identity in the content', 
   expect(footer).toHaveTextContent('Τεχνική ανάλυση, άποψη και ελληνική F1 κοινότητα.');
   expect(footer).toHaveTextContent(`© ${new Date().getFullYear()} F1 Stories.`);
   expect(footer).not.toHaveTextContent('Powered by');
-  expect(within(footer).getByRole('link', { name: 'Πολιτική Απορρήτου' })).toHaveAttribute('href', 'https://f1stories.gr/privacy/privacy.html');
-  expect(within(footer).getByRole('link', { name: 'Όροι Χρήσης' })).toHaveAttribute('href', 'https://f1stories.gr/privacy/terms.html');
+  expect(within(footer).getByRole('link', { name: 'Πολιτική Απορρήτου' })).toHaveAttribute('href', '/privacy/privacy.html');
+  expect(within(footer).getByRole('link', { name: 'Όροι Χρήσης' })).toHaveAttribute('href', '/privacy/terms.html');
   expect(within(footer).getAllByRole('link', { name: /F1 Stories στο|Email στο/ })).toHaveLength(5);
 });
 
@@ -112,4 +114,36 @@ test('hides both global components in embed mode', async () => {
   expect(await screen.findByText('BetCast content')).toBeInTheDocument();
   expect(screen.queryByRole('banner')).not.toBeInTheDocument();
   expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
+});
+
+
+test('mobile menu closes when keyboard focus continues to content without stealing focus', async () => {
+  render(<App />);
+  await screen.findByText('BetCast content');
+  const toggle = screen.getByRole('button', { name: 'Εναλλαγή μενού' });
+  const menu = screen.getByLabelText('Κύρια πλοήγηση για κινητά');
+  fireEvent.click(toggle);
+  const links = within(menu).getAllByRole('link');
+  links[0].focus();
+  links[1].focus();
+  expect(menu).toBeVisible();
+  const footerLink = within(screen.getByRole('contentinfo')).getAllByRole('link')[0];
+  act(() => footerLink.focus());
+  expect(menu).not.toBeVisible();
+  expect(footerLink).toHaveFocus();
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('the menu trigger closes a menu after a link had keyboard focus', async () => {
+  render(<App />);
+  await screen.findByText('BetCast content');
+  const toggle = screen.getByRole('button', { name: 'Εναλλαγή μενού' });
+  const menu = screen.getByLabelText('Κύρια πλοήγηση για κινητά');
+  fireEvent.click(toggle);
+  within(menu).getAllByRole('link')[0].focus();
+  act(() => toggle.focus());
+  expect(menu).toBeVisible();
+  fireEvent.click(toggle);
+  expect(menu).not.toBeVisible();
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
 });

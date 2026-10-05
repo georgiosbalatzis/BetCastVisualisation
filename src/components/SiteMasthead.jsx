@@ -1,14 +1,15 @@
+import { siteUrl, betcastUrl } from '../siteUrls';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 const NAV_LINKS = [
-  ['Αρχική', 'https://f1stories.gr/'],
-  ['Άρθρα', 'https://f1stories.gr/blog-module/blog/index.html'],
+  ['Αρχική', siteUrl('/')],
+  ['Άρθρα', siteUrl('/blog-module/blog/index.html')],
   ['YouTube', 'https://www.youtube.com/@f1_stories_original'],
-  ['Βαθμολογία', 'https://f1stories.gr/standings/'],
-  ['Δεδομένα', 'https://f1stories.gr/standings/?tab=tyre-pace'],
-  ['Συντάκτες', 'https://f1stories.gr/authors/'],
-  ['BetCast', 'https://georgiosbalatzis.github.io/BetCastVisualisation/'],
+  ['Βαθμολογία', siteUrl('/standings/')],
+  ['Δεδομένα', siteUrl('/standings/?tab=tyre-pace')],
+  ['Συντάκτες', siteUrl('/authors/')],
+  ['BetCast', betcastUrl],
 ];
 
 function NavigationLinks({ onNavigate }) {
@@ -48,7 +49,7 @@ export default function SiteMasthead() {
   return (
     <header className="app-header">
       <div className="container">
-        <a className="header-brand" href="https://f1stories.gr/" aria-label="F1 Stories — Αρχική">
+        <a className="header-brand" href={siteUrl('/')} aria-label="F1 Stories — Αρχική">
           <img src={`${process.env.PUBLIC_URL}/logo192.png`} alt="" width="38" height="38" />
           <span>F1 STORIES.</span>
         </a>
@@ -67,7 +68,9 @@ export default function SiteMasthead() {
           </button>
         </div>
       </div>
-      <nav id="site-mobile-nav" className="header-mobile-nav" aria-label="Κύρια πλοήγηση για κινητά" hidden={!menuOpen}>
+      <nav id="site-mobile-nav" className="header-mobile-nav" aria-label="Κύρια πλοήγηση για κινητά" hidden={!menuOpen} onBlur={(event) => {
+        if (event.relatedTarget instanceof Node && event.relatedTarget !== menuButton.current && !event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false);
+      }}>
         <NavigationLinks onNavigate={() => setMenuOpen(false)} />
       </nav>
     </header>

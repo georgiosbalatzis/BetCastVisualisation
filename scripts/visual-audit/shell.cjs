@@ -11,7 +11,7 @@ const expectedLinks = [
   ['Βαθμολογία', 'https://f1stories.gr/standings/'],
   ['Δεδομένα', 'https://f1stories.gr/standings/?tab=tyre-pace'],
   ['Συντάκτες', 'https://f1stories.gr/authors/'],
-  ['BetCast', 'https://georgiosbalatzis.github.io/BetCastVisualisation/'],
+  ['BetCast', 'http://localhost:3017/betcast/'],
 ];
 (async () => {
   fs.mkdirSync(out, { recursive: true });
@@ -58,6 +58,21 @@ const expectedLinks = [
         assert(await page.$eval('.menu-toggle', el => el === document.activeElement && el.getAttribute('aria-expanded') === 'false'));
         await page.keyboard.press('Tab');
         assert(await page.evaluate(() => !document.activeElement.closest('.header-mobile-nav')));
+        await page.focus('.menu-toggle');
+        await page.keyboard.press('Enter');
+        await page.focus('.header-mobile-nav a:last-child');
+        await page.keyboard.press('Tab');
+        assert(await page.$eval('.menu-toggle', el => el.getAttribute('aria-expanded') === 'false'));
+        assert(await page.$eval('.header-mobile-nav', el => el.hidden));
+        assert(await page.evaluate(() => {
+          const el = document.activeElement, r = el.getBoundingClientRect();
+          return el.tagName === 'SELECT' && el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+        }), 'Keyboard focus reaches an uncovered filter after leaving the menu');
+        await page.click('.menu-toggle');
+        await page.focus('.header-mobile-nav a');
+        await page.click('.menu-toggle');
+        assert(await page.$eval('.menu-toggle', el => el.getAttribute('aria-expanded') === 'false'));
+        assert(await page.$eval('.header-mobile-nav', el => el.hidden));
       } else {
         assert(await page.evaluate(() => {
           const nav = document.querySelector('.header-nav').getBoundingClientRect();
