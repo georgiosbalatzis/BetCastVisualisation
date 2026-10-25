@@ -20,8 +20,8 @@ test('parses only approved table URLs and preserves open-ended scope', () => {
   });
   assert.equal(parseArticleUrl('https://georgiosbalatzis.github.io/BetCastVisualisation/?viz=dataTable&from=11&embed=1').to, null);
   assert.throws(() => parseArticleUrl('https://evil.example/?viz=dataTable'), /Unapproved/);
-  assert.throws(() => parseArticleUrl('https://f1stories.gr/standings/?viz=dataTable'), /Unapproved/);
-  assert.throws(() => parseArticleUrl('https://f1stories.gr/betcast/?viz=budget'), /explicitly use viz=dataTable/);
+  assert.throws(() => parseArticleUrl('https://f1-stories.gr/standings/?viz=dataTable'), /Unapproved/);
+  assert.throws(() => parseArticleUrl('https://f1-stories.gr/betcast/?viz=budget'), /explicitly use viz=dataTable/);
   assert.throws(() => parseArticleUrl(`${url}&week=4`), /more than one/);
 });
 
@@ -50,7 +50,7 @@ test('exports a valid source-pinned selection with full-source identifiers and d
 });
 
 test('supports the stable lastYear source mapping as well as current', () => {
-  const selection = parseArticleUrl('https://f1stories.gr/betcast/?viz=dataTable&season=lastYear&from=2');
+  const selection = parseArticleUrl('https://f1-stories.gr/betcast/?viz=dataTable&season=lastYear&from=2');
   const snapshot = buildArticleSnapshot({
     id: 'last-year-fixture', capturedAt: '2026-10-05T12:00:00.000Z', selection,
     seasonLabel: 'Verified prior season', sourceKind: 'provided-csv', csvBytes: fixture,

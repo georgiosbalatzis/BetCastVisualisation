@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-const ARTICLE_ORIGINS = new Set(['https://f1stories.gr', 'https://www.f1stories.gr']);
+const ARTICLE_ORIGINS = new Set(['https://f1-stories.gr', 'https://www.f1-stories.gr']);
 const RESIZE_EVENT = 'betcast:resize';
 const MEASURE_EVENT = 'betcast:measure';
 

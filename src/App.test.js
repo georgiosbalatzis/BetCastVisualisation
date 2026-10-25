@@ -46,7 +46,7 @@ test('renders the canonical global shell with BetCast identity in the content', 
   expect(footer).not.toHaveTextContent('Powered by');
   expect(within(footer).getByRole('link', { name: 'Πολιτική Απορρήτου' })).toHaveAttribute('href', '/privacy/privacy.html');
   expect(within(footer).getByRole('link', { name: 'Όροι Χρήσης' })).toHaveAttribute('href', '/privacy/terms.html');
-  expect(within(footer).getAllByRole('link', { name: /F1 Stories στο|Email στο/ })).toHaveLength(5);
+  expect(within(footer).getAllByRole('link', { name: /F1 Stories στο|Email στο/ })).toHaveLength(4);
 });
 
 test('opts into article presentation only for an embedded article URL', async () => {
@@ -75,13 +75,14 @@ test('embed measurement wrapper reports intrinsic size and replies only to the a
     act(() => window.dispatchEvent(event));
   };
   handshake(parent, 'https://evil.example', { type: 'betcast:measure' });
-  handshake({}, 'https://f1stories.gr', { type: 'betcast:measure' });
+  handshake(parent, 'https://f1stories.gr', { type: 'betcast:measure' }); // retired domain, no longer trusted
+  handshake({}, 'https://f1-stories.gr', { type: 'betcast:measure' });
   expect(parent.messages).toHaveLength(1);
-  handshake(parent, 'https://f1stories.gr', { type: 'betcast:measure', extra: true });
+  handshake(parent, 'https://f1-stories.gr', { type: 'betcast:measure', extra: true });
   expect(parent.messages).toHaveLength(1);
-  handshake(parent, 'https://f1stories.gr', { type: 'betcast:measure' });
+  handshake(parent, 'https://f1-stories.gr', { type: 'betcast:measure' });
   act(() => pendingFrame());
-  expect(parent.messages.at(-1)).toEqual({ data: { type: 'betcast:resize', height: 432 }, origin: 'https://f1stories.gr' });
+  expect(parent.messages.at(-1)).toEqual({ data: { type: 'betcast:resize', height: 432 }, origin: 'https://f1-stories.gr' });
 
   view.unmount();
   raf.mockRestore();
