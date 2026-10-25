@@ -30,7 +30,7 @@ const assertAllowedBetCastUrl = (url) => {
     && url.hostname === 'georgiosbalatzis.github.io'
     && (url.pathname === '/BetCastVisualisation/' || url.pathname === '/BetCastVisualisation');
   const isSameOrigin = url.protocol === 'https:'
-    && url.hostname === 'f1stories.gr'
+    && url.hostname === 'f1-stories.gr'
     && (url.pathname === '/betcast/' || url.pathname === '/betcast');
   if (url.username || url.password || url.port || (!isGitHubPages && !isSameOrigin)) {
     fail(`Unapproved BetCast URL origin/path: ${url.origin}${url.pathname}`);

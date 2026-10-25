@@ -170,17 +170,17 @@ test('theme=host article embeds use the saved fallback, then accept a validated 
     };
     dispatch('https://evil.example', { type: 'betcast:theme', theme: 'dark' });
     expect(view.resolved()).toBe('light');
-    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark', extra: true });
+    dispatch('https://f1-stories.gr', { type: 'betcast:theme', theme: 'dark', extra: true });
     expect(view.resolved()).toBe('light');
-    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark' }, {});
+    dispatch('https://f1-stories.gr', { type: 'betcast:theme', theme: 'dark' }, {});
     expect(view.resolved()).toBe('light');
-    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark' });
+    dispatch('https://f1-stories.gr', { type: 'betcast:theme', theme: 'dark' });
     expect(view.resolved()).toBe('dark');
     expect(storageSnapshot()).toEqual({ [KEY]: 'light' });
     view.unmount();
 
     const explicit = renderProvider({ search: '?embed=1&presentation=article&theme=light', osDark: true });
-    dispatch('https://f1stories.gr', { type: 'betcast:theme', theme: 'dark' });
+    dispatch('https://f1-stories.gr', { type: 'betcast:theme', theme: 'dark' });
     expect(explicit.resolved()).toBe('light');
     explicit.unmount();
   } finally {

@@ -43,7 +43,7 @@ const isHostThemeRequest = () => {
     && ['1', 'true', 'yes', 'on'].includes(String(params.get('embed') || '').toLowerCase());
 };
 
-const isApprovedArticleOrigin = (origin) => origin === 'https://f1stories.gr' || origin === 'https://www.f1stories.gr';
+const isApprovedArticleOrigin = (origin) => origin === 'https://f1-stories.gr' || origin === 'https://www.f1-stories.gr';
 
 /** Store an explicit choice; the legacy key goes only once the shared key is written */
 const saveMode = (mode) => {
