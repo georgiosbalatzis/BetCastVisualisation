@@ -15,11 +15,12 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:scripts": "node --test scripts/*.test.mjs",
     "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "deploy": "node scripts/deploy-pages.mjs",
     "check:tokens": "node scripts/check-tokens.cjs",
     "build:f1stories": "node scripts/build-f1stories.mjs",
+    "build:legacy-redirects": "npm run build:f1stories && node scripts/legacy-redirects.mjs build build-legacy",
     "export:article-table": "node scripts/export-article-table.mjs"
   },
   "eslintConfig": {

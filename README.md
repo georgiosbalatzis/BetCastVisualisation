@@ -11,10 +11,28 @@ there is no separate lint script.
 
 ## Publishing to GitHub Pages
 
-Run `npm run deploy` only when you intend to publish. Its `predeploy` hook runs
-`npm run build`, then `gh-pages -d build` publishes the generated `build/` directory
-to the `gh-pages` branch. GitHub Pages serves that branch from `/`.
-Publishing requires Git credentials with repository write access.
+Run `npm run deploy` only when you intend to publish. It publishes to the `gh-pages`
+branch what [`pages-mode.json`](pages-mode.json) asks for; GitHub Pages serves that
+branch from `/`. Publishing requires Git credentials with repository write access.
+
+- `"app"` (current): `npm run build`, then `gh-pages -d build`, as before.
+- `"legacy-redirects"`: `npm run build:legacy-redirects` builds the f1-stories.gr
+  version, then [`scripts/legacy-redirects.mjs`](scripts/legacy-redirects.mjs)
+  replaces its page with one that sends readers to `https://f1-stories.gr/betcast/`
+  with the query string and hash, and links it as canonical; other old paths are
+  handled by `404.html`. Images and other files stay at their old URLs.
+  `gh-pages -t -d build-legacy` publishes it.
+
+The app is published at `https://f1-stories.gr/betcast/`. GitHub Pages cannot send
+HTTP 301s; these are client-side redirects. Without JavaScript a meta refresh goes to
+the same page without the query and hash, and the page shows the link.
+
+To publish the redirects: check that `https://f1-stories.gr/betcast/` is live, set
+`"mode": "legacy-redirects"` in a reviewed PR, merge, then run `npm run deploy` from
+the merged `main`. Rollback: set `"mode": "app"`, merge, `npm run deploy`. Roll this
+back **before** rolling f1-stories.gr back to a release without the tools: that
+release's `/betcast/` page points to github.io, and with the redirect live here
+readers would be sent back and forth.
 
 Keep application source in `src/` and public source assets in `public/`.
 Do not commit `build/`, copied build output at the repository root, or local audit
