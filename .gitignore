@@ -10,6 +10,7 @@
 
 # production
 /build
+/build-legacy
 
 # Local IDE configuration and generated visual audit evidence
 /.idea/
