@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect, useLayoutEffect,
  * The resolved boolean `isDark` tells components what's actually active.
  *
  * The preference is the F1Stories-wide `f1stories-theme` key (see docs/theme.md).
- * The pre-paint script in public/index.html reads the same keys in the same
+ * The pre-paint script public/theme-init.js reads the same keys in the same
  * order and migrates `betcast_theme`; keep the two in step.
  */
 
