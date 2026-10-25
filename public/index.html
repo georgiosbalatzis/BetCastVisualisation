@@ -21,42 +21,14 @@
     <meta property="og:image:height" content="512" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Barlow Condensed 600/700 and IBM Plex Sans 400–700, self-hosted: the same files Google Fonts serves. -->
+    <link href="%PUBLIC_URL%/fonts/fonts.css" rel="stylesheet" />
     <!-- Social icons are inline SVGs — no external Font Awesome needed -->
     <title>BetCast F1Stories</title>
   </head>
   <body>
-    <!-- Anti-flicker: apply theme class BEFORE React mounts to prevent flash.
-         Same order as src/context/ThemeContext.js (docs/theme.md): ?theme=light|dark (this view only)
-         → "f1stories-theme" (light, dark, or auto = follow the OS, left as stored) → auto.
-         "betcast_theme" is the old key: copied over when the shared key holds no usable value,
-         then removed — but only after that write succeeds. -->
-    <script>
-      (function() {
-        var KEY = 'f1stories-theme', LEGACY_KEY = 'betcast_theme';
-        var valid = function(v) { return v === 'light' || v === 'dark' || v === 'auto'; };
-        var params = new URLSearchParams(window.location.search);
-        var s = params.get('theme');
-        var hostTheme = s === 'host' && params.get('presentation') === 'article'
-          && ['1', 'true', 'yes', 'on'].indexOf(String(params.get('embed') || '').toLowerCase()) !== -1;
-        if (s !== 'light' && s !== 'dark' && !hostTheme) s = null;
-        var stored = null;
-        try {
-          stored = localStorage.getItem(KEY);
-          var legacy = localStorage.getItem(LEGACY_KEY);
-          if (!valid(stored) && valid(legacy)) {
-            stored = legacy;
-            localStorage.setItem(KEY, legacy);
-          }
-          if (legacy !== null) localStorage.removeItem(LEGACY_KEY);
-        } catch(e) {}
-        s = (s === 'light' || s === 'dark') ? s : (valid(stored) ? stored : 'auto');
-        var d = s === 'dark' || (s === 'auto' && (window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : true));
-        document.body.classList.add(d ? 'dark-mode' : 'light-mode');
-      })();
-    </script>
+    <!-- Anti-flicker theme class before React mounts: blocking, see public/theme-init.js and docs/theme.md. -->
+    <script src="%PUBLIC_URL%/theme-init.js"></script>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
   </body>

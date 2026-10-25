@@ -31,7 +31,8 @@ const LEGACY = 'betcast_theme';
     }, stored);
     if (blockScripts) {
       await page.setRequestInterception(true);
-      page.on('request', request => (request.resourceType() === 'script' ? request.abort() : request.continue()));
+      // Block the app bundle; the pre-paint theme-init.js is the only script allowed to paint.
+      page.on('request', request => (request.resourceType() === 'script' && !request.url().endsWith('/theme-init.js') ? request.abort() : request.continue()));
     }
     await page.goto(URL + search, { waitUntil: 'networkidle2' });
     if (!blockScripts) await page.waitForSelector('.App');
@@ -47,7 +48,7 @@ const LEGACY = 'betcast_theme';
   };
 
   try {
-    // First paint before any app JS: the bundle is blocked, the inline script alone paints.
+    // First paint before any app JS: the bundle is blocked, the pre-paint theme-init.js alone paints.
     for (const [stored, os, resolved] of [[{ [KEY]: 'dark' }, 'light', 'dark'], [{ [KEY]: 'auto' }, 'dark', 'dark'], [{ [KEY]: 'auto' }, 'light', 'light'], [{ [LEGACY]: 'dark' }, 'light', 'dark']]) {
       const { page, context } = await open({ stored, os, blockScripts: true });
       assert.equal(await page.$eval('body', el => el.className), `${resolved}-mode`);

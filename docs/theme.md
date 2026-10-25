@@ -14,7 +14,7 @@ The **preference** (`light` / `dark` / `auto`) is what is stored. The **resolved
 
 ## Resolution
 
-The inline script in `public/index.html` runs before first paint and sets the body class. `src/context/ThemeContext.js` reads the same keys in the same order for React state, so React never repaints a different theme. Both are covered by one shared case table in `src/context/ThemeContext.test.js`, which runs the real `index.html` script.
+`public/theme-init.js`, loaded blocking at the top of `<body>` in `public/index.html`, runs before first paint and sets the body class. `src/context/ThemeContext.js` reads the same keys in the same order for React state, so React never repaints a different theme. Both are covered by one shared case table in `src/context/ThemeContext.test.js`, which runs the real `public/theme-init.js`.
 
 1. `?theme=light|dark`: this view only, never stored (share and embed links).
 2. `f1stories-theme` = `light` / `dark` / `auto`.

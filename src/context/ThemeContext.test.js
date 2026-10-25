@@ -7,9 +7,18 @@ import { ThemeProvider, useTheme, THEME_STORAGE_KEY, LEGACY_THEME_STORAGE_KEY } 
 const KEY = 'f1stories-theme';
 const LEGACY = 'betcast_theme';
 
-// The real pre-paint script from public/index.html, run against a stub page.
+// The real pre-paint script (public/theme-init.js, loaded blocking by public/index.html), run against a stub page.
 const html = fs.readFileSync(path.join(__dirname, '../../public/index.html'), 'utf8');
-const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).find((s) => s.includes(KEY));
+const script = fs.readFileSync(path.join(__dirname, '../../public/theme-init.js'), 'utf8');
+
+test('public/index.html loads the pre-paint script blocking at the top of <body>, with no executable inline script or remote fonts', () => {
+  const body = html.slice(html.indexOf('<body>'));
+  expect(body.indexOf('<script src="%PUBLIC_URL%/theme-init.js"></script>')).toBeLessThan(body.indexOf('<div id="root">'));
+  expect(body.indexOf('<script src="%PUBLIC_URL%/theme-init.js"></script>')).toBeGreaterThan(0);
+  expect(html.match(/<script>([\s\S]*?)<\/script>/g)).toBeNull();
+  expect(html).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+  expect(fs.readFileSync(path.join(__dirname, '../../public/fonts/fonts.css'), 'utf8')).not.toMatch(/https?:/);
+});
 
 // storageThrows: every access fails (blocked storage). writeThrows: only setItem fails (quota).
 function runScript({ stored = {}, search = '', osDark = false, storageThrows = false, writeThrows = false } = {}) {
