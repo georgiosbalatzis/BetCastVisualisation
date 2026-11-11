@@ -409,3 +409,7 @@ a:hover { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+.loading-value::before { content: "000.00"; visibility: hidden; }
+.loading-chart { background: var(--surface); display: flow-root; }
+.loading-chart .state-copy { margin: 16px; }

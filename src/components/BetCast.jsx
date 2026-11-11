@@ -1,3 +1,5 @@
+import { VIZ_OPTIONS, getNumericParam, normaliseDataSourceId } from './loadingMetadata';
+import LoadingDashboard from './LoadingDashboard';
 import React, { useState, useEffect, useCallback, useMemo, useRef, startTransition } from 'react';
 import {
   Line, Bar, PieChart, Pie, Cell, Sector, ReferenceDot, ReferenceLine,
@@ -104,21 +106,7 @@ const WeeklyProfitLegend = () => (
 const exportCSV = (data, fn = 'betcast_export.csv') => { const h = ['#', 'Εβδομάδα', 'Στοίχημα', 'Τύπος', 'Εταιρία', 'Αποδόσεις', 'Ποντάρισμα (€)', 'Αποτέλεσμα', 'Κέρδος/Ζημία (€)', 'Budget (€)']; const r = data.map((b) => [b.id, b.week, b.betNumber, b.betType || '', b.company || '', safeNumber(b.odds).toFixed(2), safeNumber(b.stake).toFixed(2), b.result === 'Win' ? 'Νίκη' : 'Ήττα', safeNumber(b.profitLoss).toFixed(2), safeNumber(b.cumulativeBudget).toFixed(2)]); const csv = [h.join(','), ...r.map((x) => x.join(','))].join('\n'); const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fn; a.click(); };
 
 // Viz options
-const VIZ_OPTIONS = [
-  { id: 'budget', name: 'Εξέλιξη Budget', icon: 'chart' },
-  { id: 'weeklyProfit', name: 'Εβδομ. Κέρδη', icon: 'chart' },
-  { id: 'winLossRatio', name: 'Νίκες/Ήττες', icon: 'chart' },
-  { id: 'oddsDistribution', name: 'Αποδόσεις', icon: 'chart' },
-  { id: 'profitByOdds', name: 'Κέρδος ανά απόδοση', icon: 'chart' },
-  { id: 'evTracking', name: 'Αναμενόμενη αξία', icon: 'chart' },
-  { id: 'kelly', name: 'Kelly', icon: 'chart' },
-  { id: 'betSize', name: 'Ποντάρισμα', icon: 'chart' },
-  { id: 'winRateByWeek', name: 'Ποσοστό νικών', icon: 'chart' },
-  { id: 'weeklyROI', name: 'Εβδομ. ROI', icon: 'chart' },
-  { id: 'cumulativeROI', name: 'Συνολ. ROI', icon: 'chart' },
-  { id: 'compareWeeks', name: 'Σύγκριση', icon: 'chart' },
-  { id: 'dataTable', name: 'Πίνακας', icon: 'chart' },
-];
+
 
 const TABLE_COLS = [
   { key: 'id', label: '#', align: 'center' }, { key: 'week', label: 'Εβδ.', align: 'center' },
@@ -138,14 +126,7 @@ const EMBED_TITLE = 'BetCast F1 Stories';
 const DEFAULT_DATA_SOURCE = 'current';
 const DATA_SOURCE_OPTIONS = Object.values(DATA_SOURCES);
 
-const getNumericParam = (params, key) => {
-  const value = params.get(key);
-  if (value == null || value === '') return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-};
 
-const normaliseDataSourceId = (value) => DATA_SOURCES[value] ? value : DEFAULT_DATA_SOURCE;
 
 const buildShareUrl = ({ selectedViz, dataSource, weekFrom, weekTo, highlightedWeek, cmpWeekA, cmpWeekB, embedded = false, articlePresentation = false, themeMode = '', isDarkMode = true }) => {
   if (typeof window === 'undefined') return '';
@@ -599,14 +580,7 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
     </main>
   );
 
-  if (loading) return (
-    <main className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`} aria-busy="true">
-      <div className="page-toolbar"><div className="page-toolbar__heading"><h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1><p className="page-intro">Στοιχηματική ανάλυση. Κάθε επιλογή, κάθε εβδομάδα.</p></div></div>
-      <section className="scope-bar loading-scope" aria-label="Φόρτωση φίλτρων"><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /></section>
-      <section className="metrics loading-metrics" aria-label="Φόρτωση σύνοψης"><div className="skeleton skeleton-value" /><div className="skeleton skeleton-value" /></section>
-      <section className="analysis-section loading-analysis"><div className="analysis-heading"><span className="section-label">02 / ΑΝΑΛΥΣΗ</span><span className="skeleton skeleton-selector" /></div><p role="status" className="state-copy">Φόρτωση στοιχημάτων…</p><div className="skeleton skeleton-chart" /></section>
-    </main>
-  );
+  if (loading) return <LoadingDashboard embedded={embedded} dataSource={dataSource} weekFrom={weekFrom} weekTo={weekTo} highlightedWeek={highlightedWeek} selectedViz={selectedViz} allWeeks={allWeeks} />;
 
   if (isArticlePresentation) {
     const scopeParts = [DATA_SOURCES[dataSource]?.label || dataSource];
