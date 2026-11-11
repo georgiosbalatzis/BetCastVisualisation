@@ -153,3 +153,7 @@ also covered live sheet data, filters, sorting, tooltips, CSV, sharing, embeds a
 retry. Main-site and BetCast header/menu/footer captures were visually compared.
 The existing Testing Library emits a React `act` deprecation warning; dependencies
 were not changed in this pass.
+
+### Layout shift regression
+
+Build with `npm run build:f1stories`, then run `PUPPETEER_MODULE=/absolute/path/to/puppeteer-core CHROME_PATH="/absolute/path/to/Chrome" npm run test:layout-shift`. The existing external Puppeteer and Chrome prerequisites apply; no dependency is installed. `BUILD_DIR` optionally selects another build and `LAYOUT_SHIFT_REPORT` selects the JSON output. The synthetic fixture is delayed 1500 ms. All buffered entries are recorded, including recent-input entries. Any source inside `.metrics` or `.primary-metrics` fails, as does a sum over 0.05 for entries starting at or after fixture response delivery. Session-max CLS, pre-data shifts, and post-data entries with their sources are reported as INFO. Pre-data header shifts are pre-existing and outside P-09 scope. The intermittent chart-title shift is also pre-existing and outside P-09 scope, and remains counted in the post-data sum. This opt-in check is not part of `npm test` or CI.

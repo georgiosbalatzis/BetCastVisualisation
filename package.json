@@ -21,7 +21,8 @@
     "check:tokens": "node scripts/check-tokens.cjs",
     "build:f1stories": "node scripts/build-f1stories.mjs",
     "build:legacy-redirects": "npm run build:f1stories && node scripts/legacy-redirects.mjs build build-legacy",
-    "export:article-table": "node scripts/export-article-table.mjs"
+    "export:article-table": "node scripts/export-article-table.mjs",
+    "test:layout-shift": "node scripts/visual-audit/layout-shift.cjs"
   },
   "eslintConfig": {
     "extends": [

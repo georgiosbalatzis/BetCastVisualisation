@@ -1,3 +1,5 @@
+import { parseLoadingMetadata } from './components/loadingMetadata';
+import LoadingDashboard from './components/LoadingDashboard';
 import React, { Suspense, lazy } from 'react';
 import './App.css';
 import { ThemeProvider } from './context/ThemeContext';
@@ -85,14 +87,7 @@ function VisualizationFallback({ embedded, articlePresentation }) {
       </main>
     );
   }
-  return (
-    <main className={`main-content${embedded ? ' main-content--embedded' : ''}`} aria-busy="true">
-      <div className="page-toolbar"><div className="page-toolbar__heading"><h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1><p className="page-intro">Στοιχηματική ανάλυση. Κάθε επιλογή, κάθε εβδομάδα.</p></div></div>
-      <section className="scope-bar loading-scope" aria-label="Φόρτωση φίλτρων"><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /><span className="skeleton skeleton-control" /></section>
-      <section className="metrics loading-metrics" aria-label="Φόρτωση σύνοψης"><div className="skeleton skeleton-value" /><div className="skeleton skeleton-value" /></section>
-      <section className="analysis-section loading-analysis"><div className="analysis-heading"><span className="section-label">02 / ΑΝΑΛΥΣΗ</span><span className="skeleton skeleton-selector" /></div><p role="status" className="state-copy">Φόρτωση στοιχημάτων…</p><div className="skeleton skeleton-chart" /></section>
-    </main>
-  );
+  return <LoadingDashboard embedded={embedded} {...parseLoadingMetadata(typeof window === 'undefined' ? '' : window.location.search)} />;
 }
 
 function App() {
