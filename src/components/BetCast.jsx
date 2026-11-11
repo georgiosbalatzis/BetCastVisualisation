@@ -1,4 +1,4 @@
-import { VIZ_OPTIONS, getNumericParam, normaliseDataSourceId } from './loadingMetadata';
+import { VIZ_OPTIONS, getNumericParam, normaliseDataSourceId, parseLoadingMetadata } from './loadingMetadata';
 import LoadingDashboard from './LoadingDashboard';
 import React, { useState, useEffect, useCallback, useMemo, useRef, startTransition } from 'react';
 import {
@@ -178,11 +178,9 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bettingData, setBettingData] = useState([]);
-  const [selectedViz, setSelectedViz] = useState('budget');
-  const [dataSource, setDataSource] = useState(() => {
-    if (typeof window === 'undefined') return DEFAULT_DATA_SOURCE;
-    return normaliseDataSourceId(new URLSearchParams(window.location.search).get(DATA_SOURCE_PARAM));
-  });
+  const [initialMetadata] = useState(() => parseLoadingMetadata(typeof window === 'undefined' ? '' : window.location.search));
+  const [selectedViz, setSelectedViz] = useState(initialMetadata.selectedViz);
+  const [dataSource, setDataSource] = useState(initialMetadata.dataSource);
   const [presentation, setPresentation] = useState(() => {
     if (typeof window === 'undefined') return 'dashboard';
     return new URLSearchParams(window.location.search).get('presentation') === 'article' ? 'article' : 'dashboard';
@@ -192,9 +190,9 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
     return new URLSearchParams(window.location.search).get('theme') || '';
   });
   const [activeIndex, setActiveIndex] = useState(0);
-  const [weekFrom, setWeekFrom] = useState(null);
-  const [weekTo, setWeekTo] = useState(null);
-  const [highlightedWeek, setHighlightedWeek] = useState(null);
+  const [weekFrom, setWeekFrom] = useState(initialMetadata.weekFrom);
+  const [weekTo, setWeekTo] = useState(initialMetadata.weekTo);
+  const [highlightedWeek, setHighlightedWeek] = useState(initialMetadata.highlightedWeek);
   const [sortCol, setSortCol] = useState('id');
   const [sortDir, setSortDir] = useState('asc');
   const [tablePage, setTablePage] = useState(0);
@@ -300,14 +298,8 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
   // #2 — URL deep-linking: read on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const requestedViz = params.get('viz');
     setPresentation(params.get('presentation') === 'article' ? 'article' : 'dashboard');
     setThemeMode(params.get('theme') || '');
-    if (requestedViz && VIZ_OPTIONS.some((option) => option.id === requestedViz)) setSelectedViz(requestedViz);
-    setDataSource(normaliseDataSourceId(params.get(DATA_SOURCE_PARAM)));
-    setWeekFrom(getNumericParam(params, 'from'));
-    setWeekTo(getNumericParam(params, 'to'));
-    setHighlightedWeek(getNumericParam(params, 'week'));
     setCmpWeekA(getNumericParam(params, 'cmpA'));
     setCmpWeekB(getNumericParam(params, 'cmpB'));
     setUrlStateInitialized(true);
