@@ -80,6 +80,8 @@ button:disabled { cursor: not-allowed; color: var(--text-muted); border-style: d
 a { color: inherit; text-decoration: none; }
 a:hover { color: var(--accent); }
 :where(button, a, select, input, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+/* Main is a non-interactive focus target used only to keep focus position after Retry. */
+main[tabindex="-1"]:focus, main[tabindex="-1"]:focus-visible { outline: none; }
 .App { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
 .container, .main-content { width: 100%; max-width: var(--content-width); margin-inline: auto; padding-inline: var(--gutter); }
 .main-content { flex: 1; padding-block: var(--space-xl) var(--space-section); }
