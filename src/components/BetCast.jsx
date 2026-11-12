@@ -331,7 +331,15 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
     return () => clearTimeout(timeout);
   }, [shareFeedback]);
 
-  const handleRetry = useCallback(() => { clearCache(dataSource); setError(null); setLoading(true); refreshData().catch(() => setError('Αποτυχία.')).finally(() => setLoading(false)); }, [dataSource, refreshData]);
+  const retryFocus = useRef(false);
+  const mainFocus = useRef(null);
+  useEffect(() => {
+    if (!retryFocus.current) return;
+    mainFocus.current?.focus({ preventScroll: true });
+    if (!loading) retryFocus.current = false;
+  }, [loading]);
+
+  const handleRetry = useCallback(() => { retryFocus.current = true; clearCache(dataSource); setError(null); setLoading(true); refreshData().catch(() => setError('Αποτυχία.')).finally(() => setLoading(false)); }, [dataSource, refreshData]);
   const handleChartWeekClick = useCallback((wn) => startTransition(() => setHighlightedWeek((p) => p === wn ? null : wn)), []);
   const updateDataSource = useCallback((value) => startTransition(() => {
     setDataSource(normaliseDataSourceId(value));
@@ -565,14 +573,14 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
   ];
 
   if (loading && isArticlePresentation) return (
-    <main className="main-content main-content--article-presentation" aria-busy="true">
+    <main ref={mainFocus} tabIndex={-1} className="main-content main-content--article-presentation" aria-busy="true">
       <header className="article-presentation__header"><p className="article-presentation__brand">BETCAST <span aria-hidden="true">·</span> F1 STORIES</p><h1>{selectedOption?.name || 'Ανάλυση στοιχημάτων'}</h1><p className="article-presentation__scope">{DATA_SOURCES[dataSource]?.label || dataSource}{weekFrom != null || weekTo != null ? ` · Εβδ. ${weekFrom ?? 1}–${weekTo ?? allWeeks[allWeeks.length - 1] ?? ''}` : highlightedWeek != null ? ` · Εβδ. ${highlightedWeek}` : ' · Όλες οι εβδομάδες'}</p></header>
       <p role="status" className="state-copy">Φόρτωση στοιχημάτων…</p><div className="skeleton skeleton-chart" />
       <footer className="article-presentation__footer"><a href={fullAppUrl} target="_blank" rel="noopener noreferrer">Άνοιγμα BetCast ↗</a></footer>
     </main>
   );
 
-  if (loading) return <LoadingDashboard embedded={embedded} dataSource={dataSource} weekFrom={weekFrom} weekTo={weekTo} highlightedWeek={highlightedWeek} selectedViz={selectedViz} allWeeks={allWeeks} />;
+  if (loading) return <LoadingDashboard focusRef={mainFocus} embedded={embedded} dataSource={dataSource} weekFrom={weekFrom} weekTo={weekTo} highlightedWeek={highlightedWeek} selectedViz={selectedViz} allWeeks={allWeeks} />;
 
   if (isArticlePresentation) {
     const scopeParts = [DATA_SOURCES[dataSource]?.label || dataSource];
@@ -580,7 +588,7 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
     if (highlightedWeek != null) scopeParts.push(`Εβδ. ${highlightedWeek}`);
     if (weekFrom == null && weekTo == null && highlightedWeek == null) scopeParts.push('Όλες οι εβδομάδες');
     return (
-      <main id="main" className="main-content main-content--article-presentation">
+      <main ref={mainFocus} tabIndex={-1} id="main" className="main-content main-content--article-presentation">
         <header className="article-presentation__header">
           <p className="article-presentation__brand">BETCAST <span aria-hidden="true">·</span> F1 STORIES</p>
           <h1>{selectedOption?.name || 'Ανάλυση στοιχημάτων'}</h1>
@@ -602,7 +610,7 @@ const BettingVisualizations = ({ embedded = false, articlePresentation = false }
   }
 
   return (
-    <main id="main" className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`}>
+    <main ref={mainFocus} tabIndex={-1} id="main" className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`}>
       <div className="page-toolbar">
         <div className="page-toolbar__heading">
           <h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1>

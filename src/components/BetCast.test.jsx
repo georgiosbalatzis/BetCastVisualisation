@@ -106,3 +106,31 @@ test.each([
   expect(screen.queryByLabelText('Προβολή')).not.toBeInTheDocument();
   expect(screen.queryByText('03 / ΣΤΟΙΧΕΙΑ')).not.toBeInTheDocument();
 });
+
+test.each([[false, false], [true, false], [true, true]])('retry keeps focus in the dashboard while loading and after failure (embedded=%s, article=%s)', async (embedded, articlePresentation) => {
+  fetchBettingData.mockRejectedValueOnce(new Error('offline'));
+  let rejectRetry;
+  fetchBettingData.mockImplementationOnce(() => new Promise((resolve, reject) => { rejectRetry = reject; }));
+  render(<ThemeProvider><BetCast embedded={embedded} articlePresentation={articlePresentation} /></ThemeProvider>);
+  const retry = await screen.findByRole('button', { name: 'Επανάληψη' });
+  retry.focus();
+  fireEvent.click(retry);
+  expect(document.activeElement).toBe(screen.getByRole('main'));
+  rejectRetry(new Error('offline'));
+  await screen.findByText('Αποτυχία.');
+  expect(document.activeElement).toBe(screen.getByRole('main'));
+});
+
+test('retry keeps focus in the dashboard after data arrives', async () => {
+  fetchBettingData.mockRejectedValueOnce(new Error('offline'));
+  let resolveRetry;
+  fetchBettingData.mockImplementationOnce(() => new Promise(resolve => { resolveRetry = resolve; }));
+  render(<ThemeProvider><BetCast /></ThemeProvider>);
+  const retry = await screen.findByRole('button', { name: 'Επανάληψη' });
+  retry.focus();
+  fireEvent.click(retry);
+  expect(document.activeElement).toBe(screen.getByRole('main'));
+  resolveRetry([]);
+  await screen.findByText('Δεν βρέθηκαν στοιχήματα.');
+  expect(document.activeElement).toBe(screen.getByRole('main'));
+});

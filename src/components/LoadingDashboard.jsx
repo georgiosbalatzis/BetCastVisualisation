@@ -2,11 +2,11 @@ import React from 'react';
 import { DATA_SOURCES, VIZ_OPTIONS, rendererTitles } from './loadingMetadata';
 
 // Keep the loading geometry governed by the same rules as the populated dashboard.
-export default function LoadingDashboard({ embedded, dataSource = 'current', weekFrom = null, weekTo = null, highlightedWeek = null, selectedViz = 'budget', allWeeks = [] }) {
+export default function LoadingDashboard({ embedded, dataSource = 'current', weekFrom = null, weekTo = null, highlightedWeek = null, selectedViz = 'budget', allWeeks = [], focusRef }) {
   const viz = VIZ_OPTIONS.find(option => option.id === selectedViz) || VIZ_OPTIONS[0];
   const scope = weekFrom == null && weekTo == null ? 'Όλες οι εβδομάδες' : `Εβδ. ${weekFrom ?? 1}–${weekTo ?? allWeeks[allWeeks.length - 1] ?? ''}`;
   return (
-    <main className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`} aria-busy="true">
+    <main ref={focusRef} tabIndex={focusRef ? -1 : undefined} className={`main-content${embedded ? ' main-content--embedded' : ' main-content--with-sponsors'}`} aria-busy="true">
       <div className="page-toolbar"><div className="page-toolbar__heading"><h1 className="page-title">BETCAST<span className="brand-dot">.</span></h1><p className="page-intro">Στοιχηματική ανάλυση. Κάθε επιλογή, κάθε εβδομάδα.</p></div></div>
       <div className="scope-bar" aria-hidden="true">
         <div className="field"><span>Σεζόν</span><select disabled tabIndex="-1"><option>{DATA_SOURCES[dataSource]?.label || DATA_SOURCES.current.label}</option></select></div>
