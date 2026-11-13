@@ -1,4 +1,4 @@
-// Anti-flicker: apply theme class BEFORE React mounts to prevent flash. Loaded blocking from the top of <body>
+// Anti-flicker: apply theme class BEFORE React mounts to prevent flash. Loaded blocking in <head> and again at the top of <body>
 // in public/index.html (an external file, so a strict Content-Security-Policy needs no 'unsafe-inline').
 // Same order as src/context/ThemeContext.js (docs/theme.md): ?theme=light|dark (this view only)
 // → "f1stories-theme" (light, dark, or auto = follow the OS, left as stored) → auto.
@@ -24,5 +24,11 @@
   } catch(e) {}
   s = (s === 'light' || s === 'dark') ? s : (valid(stored) ? stored : 'auto');
   var d = s === 'dark' || (s === 'auto' && (window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : true));
-  document.body.classList.add(d ? 'dark-mode' : 'light-mode');
+  var theme = d ? 'dark-mode' : 'light-mode';
+  if (document.body) {
+    document.body.classList.add(theme);
+    document.documentElement.classList.remove('dark-mode', 'light-mode');
+  } else {
+    document.documentElement.classList.add(theme);
+  }
 })();

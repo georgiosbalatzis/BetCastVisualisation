@@ -20,6 +20,43 @@ test('public/index.html loads the pre-paint script blocking at the top of <body>
   expect(fs.readFileSync(path.join(__dirname, '../../public/fonts/fonts.css'), 'utf8')).not.toMatch(/https?:/);
 });
 
+test('head bootstrap applies the resolved theme before stylesheets', () => {
+  const head = html.slice(html.indexOf('<head>'), html.indexOf('</head>'));
+  const scriptTag = '<script src="%PUBLIC_URL%/theme-init.js"></script>';
+  expect(head.indexOf(scriptTag)).toBeGreaterThan(-1);
+  expect(head.indexOf(scriptTag)).toBeLessThan(head.indexOf('rel="stylesheet"'));
+});
+
+test.each([
+  ['URL', '?theme=light', { [KEY]: 'dark' }, true, 'light-mode'],
+  ['shared storage', '', { [KEY]: 'light' }, true, 'light-mode'],
+  ['legacy storage', '', { [LEGACY]: 'light' }, true, 'light-mode'],
+  ['OS light', '', {}, false, 'light-mode'],
+  ['OS dark', '', {}, true, 'dark-mode'],
+])('head bootstrap resolves %s on documentElement', (_, search, stored, osDark, expected) => {
+  document.documentElement.className = '';
+  localStorage.clear();
+  Object.entries(stored).forEach(([key, value]) => localStorage.setItem(key, value));
+  const page = document.implementation.createHTMLDocument('');
+  page.body.remove();
+  vm.runInNewContext(script, {
+    window: { location: { search }, matchMedia: () => ({ matches: osDark }) },
+    document: page, localStorage, URLSearchParams,
+  });
+  expect(page.documentElement.classList.contains(expected)).toBe(true);
+});
+
+test('body handoff removes the temporary root class for later theme changes', () => {
+  const page = document.implementation.createHTMLDocument('');
+  page.documentElement.classList.add('light-mode');
+  vm.runInNewContext(script, {
+    window: { location: { search: '?theme=light' }, matchMedia: () => ({ matches: true }) },
+    document: page, localStorage, URLSearchParams,
+  });
+  expect(page.body.classList.contains('light-mode')).toBe(true);
+  expect(page.documentElement.classList.contains('light-mode')).toBe(false);
+});
+
 // storageThrows: every access fails (blocked storage). writeThrows: only setItem fails (quota).
 function runScript({ stored = {}, search = '', osDark = false, storageThrows = false, writeThrows = false } = {}) {
   const items = new Map(Object.entries(stored));
@@ -34,7 +71,7 @@ function runScript({ stored = {}, search = '', osDark = false, storageThrows = f
     location: { search },
     matchMedia: (query) => ({ matches: query === '(prefers-color-scheme: dark)' && osDark }),
   };
-  vm.runInNewContext(script, { window, document: { body: { classList: { add: (c) => classes.push(c) } } }, localStorage, URLSearchParams });
+  vm.runInNewContext(script, { window, document: { documentElement: { classList: { remove: () => {} } }, body: { classList: { add: (c) => classes.push(c) } } }, localStorage, URLSearchParams });
   return { body: classes.join(' '), storage: Object.fromEntries(items) };
 }
 
