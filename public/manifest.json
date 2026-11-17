@@ -8,14 +8,16 @@
       "type": "image/x-icon"
     },
     {
-      "src": "brand/micro-192.png",
+      "src": "brand/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
-      "src": "brand/micro-512.png",
+      "src": "brand/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
     }
   ],
   "start_url": "./",

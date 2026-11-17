@@ -414,9 +414,11 @@ main[tabindex="-1"]:focus, main[tabindex="-1"]:focus-visible { outline: none; }
 .loading-chart { background: var(--surface); display: flow-root; }
 .loading-chart .state-copy { margin: 16px; }
 
-.header-brand img { width: 100%; max-width: calc(36px * 1400 / 236); height: auto; }
+.header-brand { flex-basis: 182px; }
+.header-brand img { width: 100%; height: auto; }
+.header-brand .brand-dark { width: 95.054945%; }
 .header-brand .brand-dark { display: none; }
 body.dark-mode .header-brand .brand-light { display: none; }
 body.dark-mode .header-brand .brand-dark { display: block; }
 .footer-wordmark img { height: 28px; width: auto; }
-@media (max-width: 600px) { .header-brand img { max-width: calc(30px * 1400 / 236); } }
+@media (max-width: 600px) { .header-brand { flex-basis: calc(30px * 182 / 36); } }
