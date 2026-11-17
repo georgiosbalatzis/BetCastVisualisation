@@ -25,6 +25,8 @@
   s = (s === 'light' || s === 'dark') ? s : (valid(stored) ? stored : 'auto');
   var d = s === 'dark' || (s === 'auto' && (window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : true));
   var theme = d ? 'dark-mode' : 'light-mode';
+  var icon = document.getElementById('theme-favicon');
+  if (icon) icon.href = icon.getAttribute(d ? 'data-dark' : 'data-light');
   if (document.body) {
     document.body.classList.add(theme);
     document.documentElement.classList.remove('dark-mode', 'light-mode');

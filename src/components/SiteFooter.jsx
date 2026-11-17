@@ -13,7 +13,7 @@ export default function SiteFooter() {
       <div className="container">
         <div className="footer-body">
           <div className="footer-colophon">
-            <a className="footer-wordmark" href={siteUrl('/')} aria-label="F1 Stories, αρχική σελίδα">F1 STORIES<span className="footer-dot">.</span></a>
+            <a className="footer-wordmark" href={siteUrl('/')} aria-label="F1 Stories, αρχική σελίδα"><img src={`${process.env.PUBLIC_URL}/brand/f1s-header-dark.svg`} alt="" width="1400" height="236" /></a>
             <p className="footer-mission">Τεχνική ανάλυση, άποψη και ελληνική F1 κοινότητα.</p>
           </div>
           <nav className="footer-index" aria-label="Ενότητες">

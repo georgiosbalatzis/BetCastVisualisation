@@ -50,8 +50,8 @@ export default function SiteMasthead() {
     <header className="app-header">
       <div className="container">
         <a className="header-brand" href={siteUrl('/')} aria-label="F1 Stories — Αρχική">
-          <img src={`${process.env.PUBLIC_URL}/logo192.png`} alt="" width="38" height="38" />
-          <span>F1 STORIES.</span>
+          <img className="brand-light" src={`${process.env.PUBLIC_URL}/brand/f1s-header-light.svg`} alt="" width="1400" height="236" />
+          <img className="brand-dark" src={`${process.env.PUBLIC_URL}/brand/f1s-header-dark.svg`} alt="" width="1400" height="236" />
         </a>
         <nav className="header-nav" aria-label="Κύρια πλοήγηση">
           <NavigationLinks />
