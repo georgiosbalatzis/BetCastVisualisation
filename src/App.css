@@ -291,7 +291,6 @@ main[tabindex="-1"]:focus, main[tabindex="-1"]:focus-visible { outline: none; }
 .app-footer p { max-width: 25.2em; font-size: 12px; line-height: 1.65; }
 .footer-colophon { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border-inverse); }
 .footer-wordmark { display: inline-flex; align-items: center; min-height: 44px; font: 700 28px/1 var(--font-brand); letter-spacing: -.035em; }
-.footer-dot { color: var(--signal); }
 .app-footer .footer-mission { max-width: none; color: var(--text-inverse-secondary); font-size: 14px; }
 .footer-index { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 24px; }
 .footer-index a { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
