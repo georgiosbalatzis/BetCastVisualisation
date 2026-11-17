@@ -99,17 +99,7 @@ not being stored, keyboard toggling and live OS changes under `auto`. See
 
 ## Public images
 
-`public/logo.png` is the unchanged 1024×1024 master. The masthead uses the existing
-`public/logo192.png` derivative at 38px desktop / 32px mobile.
-`public/logo192.png` and `public/logo512.png` contain the same artwork resized to
-their manifest dimensions. On macOS, regenerate them without redesigning the logo:
-
-```sh
-sips -z 192 192 public/logo.png --out public/logo192.png
-sips -z 512 512 public/logo.png --out public/logo512.png
-```
-
-Keep `public/favicon.ico` and `public/bookmakers/`: HTML and runtime URLs use them.
+The masthead uses the theme-specific Header SVGs in `public/brand/`; the fixed dark footer uses the dark variant. Micro exports supply the favicon, touch icon and manifest icons. Keep `public/bookmakers/` for bookmaker artwork.
 
 ## Global shell parity — Priority 1
 

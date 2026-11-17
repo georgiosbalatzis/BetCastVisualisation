@@ -71,7 +71,7 @@ function runScript({ stored = {}, search = '', osDark = false, storageThrows = f
     location: { search },
     matchMedia: (query) => ({ matches: query === '(prefers-color-scheme: dark)' && osDark }),
   };
-  vm.runInNewContext(script, { window, document: { documentElement: { classList: { remove: () => {} } }, body: { classList: { add: (c) => classes.push(c) } } }, localStorage, URLSearchParams });
+  vm.runInNewContext(script, { window, document: { getElementById: () => null, documentElement: { classList: { remove: () => {} } }, body: { classList: { add: (c) => classes.push(c) } } }, localStorage, URLSearchParams });
   return { body: classes.join(' '), storage: Object.fromEntries(items) };
 }
 

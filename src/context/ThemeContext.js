@@ -57,6 +57,8 @@ const saveMode = (mode) => {
 const applyBodyClass = (isDark) => {
   document.body.classList.remove('dark-mode', 'light-mode');
   document.body.classList.add(isDark ? 'dark-mode' : 'light-mode');
+  const icon = document.getElementById('theme-favicon');
+  if (icon) icon.href = icon.getAttribute(isDark ? 'data-dark' : 'data-light');
 };
 
 // ---------------------------------------------------------------------------
